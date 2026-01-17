@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Plan, Channel, Team, CHANNEL_LABELS, TEAM_LABELS, PLAN_COLORS } from '@/types/plan';
+import { Plan, PLAN_COLORS, LabelType, Label } from '@/types/plan';
 import { usePlans } from '@/context/PlansContext';
+import { useLabels } from '@/context/LabelsContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Label as UILabel } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -15,8 +17,8 @@ import {
 } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon, DollarSign, Trash2, X, Plus } from 'lucide-react';
+import { format, differenceInDays, addDays } from 'date-fns';
+import { CalendarIcon, DollarSign, Trash2, X, Plus, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PlanDetailPanelProps {
@@ -28,34 +30,59 @@ interface PlanDetailPanelProps {
 }
 
 export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults }: PlanDetailPanelProps) => {
-  const { updatePlan, addPlan, deletePlan } = usePlans();
+  const { updatePlan, addPlan, deletePlan, plans } = usePlans();
+  const { labelTypes, getLabelsByType, activeSwimlaneTypeId } = useLabels();
   const [formData, setFormData] = useState<Plan | null>(null);
   const [newTag, setNewTag] = useState('');
+
+  // Get potential parent plans (exclude self and children)
+  const availableParentPlans = plans.filter(p => 
+    p.id !== formData?.id && p.parentPlanId !== formData?.id
+  );
 
   useEffect(() => {
     if (plan) {
       setFormData({ ...plan });
     } else if (isNew) {
+      const defaultLabels: Record<string, string> = {};
+      
+      // Set default label if provided
+      if (defaults?.labels) {
+        Object.assign(defaultLabels, defaults.labels);
+      }
+      
       setFormData({
         id: crypto.randomUUID(),
         title: '',
         startDate: defaults?.startDate || new Date(),
         endDate: defaults?.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        channel: defaults?.channel || 'social',
         budget: 0,
-        teams: [],
+        labels: defaultLabels,
         tags: [],
         color: defaults?.color || PLAN_COLORS[0].value,
+        parentPlanId: null,
+        useRelativeDates: false,
       });
     }
-  }, [plan, isNew]);
+  }, [plan, isNew, defaults]);
 
   const handleSave = () => {
     if (!formData) return;
+    
+    // If using relative dates and has parent, calculate relative offsets
+    let planToSave = { ...formData };
+    if (formData.useRelativeDates && formData.parentPlanId) {
+      const parentPlan = plans.find(p => p.id === formData.parentPlanId);
+      if (parentPlan) {
+        planToSave.relativeStartOffset = differenceInDays(formData.startDate, parentPlan.startDate);
+        planToSave.relativeEndOffset = differenceInDays(formData.endDate, parentPlan.startDate);
+      }
+    }
+    
     if (isNew) {
-      addPlan(formData);
+      addPlan(planToSave);
     } else {
-      updatePlan(formData);
+      updatePlan(planToSave);
     }
     onClose();
   };
@@ -66,12 +93,15 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
     onClose();
   };
 
-  const toggleTeam = (team: Team) => {
+  const setLabel = (typeId: string, labelId: string | null) => {
     if (!formData) return;
-    const newTeams = formData.teams.includes(team)
-      ? formData.teams.filter((t) => t !== team)
-      : [...formData.teams, team];
-    setFormData({ ...formData, teams: newTeams });
+    const newLabels = { ...formData.labels };
+    if (labelId) {
+      newLabels[typeId] = labelId;
+    } else {
+      delete newLabels[typeId];
+    }
+    setFormData({ ...formData, labels: newLabels });
   };
 
   const addTag = () => {
@@ -87,6 +117,15 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
     setFormData({ ...formData, tags: formData.tags.filter((t) => t !== tag) });
   };
 
+  const handleParentChange = (parentId: string | null) => {
+    if (!formData) return;
+    setFormData({ 
+      ...formData, 
+      parentPlanId: parentId,
+      useRelativeDates: parentId ? formData.useRelativeDates : false,
+    });
+  };
+
   if (!formData) return null;
 
   return (
@@ -99,7 +138,7 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
         <div className="space-y-6">
           {/* Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <UILabel htmlFor="title">Title</UILabel>
             <Input
               id="title"
               value={formData.title}
@@ -108,10 +147,49 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
             />
           </div>
 
+          {/* Parent Plan Selection */}
+          <div className="space-y-2">
+            <UILabel className="flex items-center gap-2">
+              <Link2 className="h-4 w-4" />
+              Parent Plan (Optional)
+            </UILabel>
+            <Select
+              value={formData.parentPlanId || '__none__'}
+              onValueChange={(v) => handleParentChange(v === '__none__' ? null : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="No parent (standalone)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">No parent (standalone)</SelectItem>
+                {availableParentPlans.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {formData.parentPlanId && (
+              <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-muted">
+                <Switch
+                  id="relative-dates"
+                  checked={formData.useRelativeDates}
+                  onCheckedChange={(checked) => 
+                    setFormData({ ...formData, useRelativeDates: checked })
+                  }
+                />
+                <UILabel htmlFor="relative-dates" className="text-sm cursor-pointer">
+                  Use relative dates (move with parent)
+                </UILabel>
+              </div>
+            )}
+          </div>
+
           {/* Date Range */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Start Date</Label>
+              <UILabel>Start Date</UILabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -131,7 +209,7 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
             </div>
 
             <div className="space-y-2">
-              <Label>End Date</Label>
+              <UILabel>End Date</UILabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -151,29 +229,44 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
             </div>
           </div>
 
-          {/* Channel */}
-          <div className="space-y-2">
-            <Label>Channel</Label>
-            <Select
-              value={formData.channel}
-              onValueChange={(v) => setFormData({ ...formData, channel: v as Channel })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(CHANNEL_LABELS).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Labels Section */}
+          <div className="space-y-4">
+            <UILabel className="text-base font-medium">Labels</UILabel>
+            {labelTypes.map((labelType) => {
+              const labelsForType = getLabelsByType(labelType.id);
+              return (
+                <div key={labelType.id} className="space-y-2">
+                  <UILabel className="text-sm text-muted-foreground">{labelType.name}</UILabel>
+                  <Select
+                    value={formData.labels[labelType.id] || '__none__'}
+                    onValueChange={(v) => setLabel(labelType.id, v === '__none__' ? null : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={`Select ${labelType.name.toLowerCase()}...`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">None</SelectItem>
+                      {labelsForType.map((label) => (
+                        <SelectItem key={label.id} value={label.id}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="h-2.5 w-2.5 rounded-full" 
+                              style={{ backgroundColor: label.color }}
+                            />
+                            {label.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })}
           </div>
 
           {/* Budget */}
           <div className="space-y-2">
-            <Label htmlFor="budget">Budget</Label>
+            <UILabel htmlFor="budget">Budget</UILabel>
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -186,26 +279,9 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
             </div>
           </div>
 
-          {/* Teams */}
-          <div className="space-y-2">
-            <Label>Teams</Label>
-            <div className="flex flex-wrap gap-2">
-              {(Object.keys(TEAM_LABELS) as Team[]).map((team) => (
-                <Badge
-                  key={team}
-                  variant={formData.teams.includes(team) ? 'default' : 'outline'}
-                  className="cursor-pointer transition-colors"
-                  onClick={() => toggleTeam(team)}
-                >
-                  {TEAM_LABELS[team]}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
           {/* Tags */}
           <div className="space-y-2">
-            <Label>Tags</Label>
+            <UILabel>Tags (for filtering)</UILabel>
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.tags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="gap-1">
@@ -232,7 +308,7 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
 
           {/* Color */}
           <div className="space-y-2">
-            <Label>Color</Label>
+            <UILabel>Color</UILabel>
             <div className="flex flex-wrap gap-2">
               {PLAN_COLORS.map((color) => (
                 <button

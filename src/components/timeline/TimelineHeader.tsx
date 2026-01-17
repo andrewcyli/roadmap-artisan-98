@@ -1,5 +1,6 @@
 import { usePlans, SnapMode } from '@/context/PlansContext';
-import { ZoomLevel, GroupBy } from '@/types/plan';
+import { useLabels } from '@/context/LabelsContext';
+import { ZoomLevel } from '@/types/plan';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,14 +10,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Calendar, Layers, Plus, Magnet } from 'lucide-react';
+import { Search, Calendar, Layers, Plus, Magnet, Settings } from 'lucide-react';
 
 interface TimelineHeaderProps {
   onAddPlan: () => void;
+  onManageLabels?: () => void;
 }
 
-export const TimelineHeader = ({ onAddPlan }: TimelineHeaderProps) => {
-  const { zoomLevel, setZoomLevel, groupBy, setGroupBy, filterText, setFilterText, snapMode, setSnapMode } = usePlans();
+export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProps) => {
+  const { zoomLevel, setZoomLevel, filterText, setFilterText, snapMode, setSnapMode } = usePlans();
+  const { labelTypes, activeSwimlaneTypeId, setActiveSwimlaneTypeId } = useLabels();
+
+  const activeLabelType = labelTypes.find(lt => lt.id === activeSwimlaneTypeId);
 
   return (
     <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-4">
@@ -42,19 +47,34 @@ export const TimelineHeader = ({ onAddPlan }: TimelineHeaderProps) => {
           />
         </div>
 
-        {/* Group By */}
+        {/* Group By (Swimlane Type Selector) */}
         <div className="flex items-center gap-2">
           <Layers className="h-4 w-4 text-muted-foreground" />
-          <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupBy)}>
+          <Select 
+            value={activeSwimlaneTypeId} 
+            onValueChange={setActiveSwimlaneTypeId}
+          >
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Group by" />
+              <SelectValue placeholder="Group by">
+                {activeLabelType ? `By ${activeLabelType.name}` : 'Group by'}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="channel">By Channel</SelectItem>
-              <SelectItem value="campaign">By Campaign</SelectItem>
+              {labelTypes.map((labelType) => (
+                <SelectItem key={labelType.id} value={labelType.id}>
+                  By {labelType.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+
+        {/* Manage Labels Button */}
+        {onManageLabels && (
+          <Button variant="outline" size="icon" onClick={onManageLabels} title="Manage Labels">
+            <Settings className="h-4 w-4" />
+          </Button>
+        )}
 
         {/* Snap Mode */}
         <div className="flex items-center gap-2">
