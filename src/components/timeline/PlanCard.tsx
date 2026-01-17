@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Plan, Channel } from '@/types/plan';
 import { usePlans } from '@/context/PlansContext';
 import { useResizeIndicator } from '@/context/ResizeIndicatorContext';
-import { format } from 'date-fns';
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 interface PlanCardProps {
@@ -24,9 +24,27 @@ export const PlanCard = ({
   onDragStart,
   isDraggingExternal 
 }: PlanCardProps) => {
-  const { updatePlan } = usePlans();
+  const { updatePlan, snapMode } = usePlans();
   const { setIndicator, clearIndicator } = useResizeIndicator();
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Snap date to week or month boundary
+  const snapDate = (date: Date, isStart: boolean): Date => {
+    if (snapMode === 'none') return date;
+    
+    if (snapMode === 'week') {
+      // Snap to Monday (start of week) or Sunday (end of week)
+      return isStart 
+        ? startOfWeek(date, { weekStartsOn: 1 }) 
+        : endOfWeek(date, { weekStartsOn: 1 });
+    }
+    
+    if (snapMode === 'month') {
+      return isStart ? startOfMonth(date) : endOfMonth(date);
+    }
+    
+    return date;
+  };
   const [isResizingStart, setIsResizingStart] = useState(false);
   const [isResizingEnd, setIsResizingEnd] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
@@ -100,22 +118,24 @@ export const PlanCard = ({
         setCurrentOffset(newOffset);
         setCurrentWidth(newWidth);
         
-        // Calculate preview start date
+        // Calculate preview start date with snap
         const daysDelta = Math.round((newOffset - originalOffset) / pixelsPerDay);
-        const newStartDate = new Date(plan.startDate);
-        newStartDate.setDate(newStartDate.getDate() + daysDelta);
-        setPreviewStartDate(newStartDate);
+        const rawStartDate = new Date(plan.startDate);
+        rawStartDate.setDate(rawStartDate.getDate() + daysDelta);
+        const snappedStartDate = snapDate(rawStartDate, true);
+        setPreviewStartDate(snappedStartDate);
       }
       if (isResizingEnd) {
         const deltaX = e.clientX - dragStartX;
         const newWidth = Math.max(60, originalWidth + deltaX);
         setCurrentWidth(newWidth);
         
-        // Calculate preview end date
+        // Calculate preview end date with snap
         const daysDelta = Math.round((newWidth - originalWidth) / pixelsPerDay);
-        const newEndDate = new Date(plan.endDate);
-        newEndDate.setDate(newEndDate.getDate() + daysDelta);
-        setPreviewEndDate(newEndDate);
+        const rawEndDate = new Date(plan.endDate);
+        rawEndDate.setDate(rawEndDate.getDate() + daysDelta);
+        const snappedEndDate = snapDate(rawEndDate, false);
+        setPreviewEndDate(snappedEndDate);
       }
     };
 
@@ -129,8 +149,9 @@ export const PlanCard = ({
 
           if (isResizingStart) {
             const daysDelta = Math.round((currentOffset - originalOffset) / pixelsPerDay);
-            const newStartDate = new Date(plan.startDate);
-            newStartDate.setDate(newStartDate.getDate() + daysDelta);
+            const rawStartDate = new Date(plan.startDate);
+            rawStartDate.setDate(rawStartDate.getDate() + daysDelta);
+            const newStartDate = snapDate(rawStartDate, true);
 
             if (newStartDate < plan.endDate) {
               updatePlan({
@@ -142,8 +163,9 @@ export const PlanCard = ({
 
           if (isResizingEnd) {
             const daysDelta = Math.round((currentWidth - originalWidth) / pixelsPerDay);
-            const newEndDate = new Date(plan.endDate);
-            newEndDate.setDate(newEndDate.getDate() + daysDelta);
+            const rawEndDate = new Date(plan.endDate);
+            rawEndDate.setDate(rawEndDate.getDate() + daysDelta);
+            const newEndDate = snapDate(rawEndDate, false);
 
             if (newEndDate > plan.startDate) {
               updatePlan({
