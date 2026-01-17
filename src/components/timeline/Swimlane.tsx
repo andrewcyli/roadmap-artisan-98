@@ -6,8 +6,15 @@ import { cn } from '@/lib/utils';
 
 interface SwimlaneProps {
   label: string;
+  channelKey?: Channel;
   plans: Plan[];
-  onPlanClick: (plan: Plan) => void;
+  onPlanDoubleClick: (plan: Plan) => void;
+  onEmptyClick: (channel: Channel | undefined, clickX: number) => void;
+  onDragStart: (plan: Plan, e: React.MouseEvent) => void;
+  onDragOver: (e: React.DragEvent, channel: Channel | undefined) => void;
+  onDrop: (e: React.DragEvent, channel: Channel | undefined) => void;
+  isDragTarget: boolean;
+  draggingPlan: Plan | null;
 }
 
 const SWIMLANE_COLORS: Record<Channel, string> = {
@@ -18,7 +25,18 @@ const SWIMLANE_COLORS: Record<Channel, string> = {
   content: 'bg-[hsl(var(--swimlane-content))]',
 };
 
-export const Swimlane = ({ label, plans, onPlanClick }: SwimlaneProps) => {
+export const Swimlane = ({ 
+  label, 
+  channelKey,
+  plans, 
+  onPlanDoubleClick, 
+  onEmptyClick,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  isDragTarget,
+  draggingPlan,
+}: SwimlaneProps) => {
   const { zoomLevel } = usePlans();
   const yearStart = startOfYear(new Date(2025, 0, 1));
   const daysInYear = 365;
@@ -59,10 +77,14 @@ export const Swimlane = ({ label, plans, onPlanClick }: SwimlaneProps) => {
   const { planStackMap, stackCount } = getStackedPlans();
   const minHeight = Math.max(60, stackCount * 36 + 24);
 
-  // Get channel from label for background color
-  const channelKey = Object.entries(CHANNEL_LABELS).find(
-    ([, v]) => v === label
-  )?.[0] as Channel | undefined;
+  const handleLaneClick = (e: React.MouseEvent) => {
+    // Only trigger if clicking directly on the lane, not on a card
+    if ((e.target as HTMLElement).closest('.plan-card-wrapper')) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    onEmptyClick(channelKey, clickX);
+  };
 
   return (
     <div className="flex border-b border-border">
@@ -74,17 +96,21 @@ export const Swimlane = ({ label, plans, onPlanClick }: SwimlaneProps) => {
       {/* Timeline Area */}
       <div
         className={cn(
-          'relative flex-1',
-          channelKey && SWIMLANE_COLORS[channelKey]
+          'relative flex-1 transition-colors',
+          channelKey && SWIMLANE_COLORS[channelKey],
+          isDragTarget && 'ring-2 ring-inset ring-primary/50 bg-primary/5',
         )}
         style={{ minHeight: `${minHeight}px` }}
         data-timeline
+        data-channel={channelKey}
+        onClick={handleLaneClick}
+        onDragOver={(e) => onDragOver(e, channelKey)}
+        onDrop={(e) => onDrop(e, channelKey)}
       >
         {plans.map((plan) => {
           const startDayOfYear = differenceInDays(plan.startDate, yearStart);
           const planDuration = differenceInDays(plan.endDate, plan.startDate);
 
-          // Get parent width for percentage calculations
           const getPixelValues = () => {
             const timelineEl = document.querySelector('[data-timeline]');
             if (!timelineEl) return { offset: 0, width: 100 };
@@ -100,14 +126,17 @@ export const Swimlane = ({ label, plans, onPlanClick }: SwimlaneProps) => {
           const stackIndex = planStackMap.get(plan.id) || 0;
 
           return (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              startOffset={offset}
-              width={width}
-              stackIndex={stackIndex}
-              onClick={() => onPlanClick(plan)}
-            />
+            <div key={plan.id} className="plan-card-wrapper">
+              <PlanCard
+                plan={plan}
+                startOffset={offset}
+                width={width}
+                stackIndex={stackIndex}
+                onDoubleClick={() => onPlanDoubleClick(plan)}
+                onDragStart={onDragStart}
+                isDraggingExternal={draggingPlan?.id === plan.id}
+              />
+            </div>
           );
         })}
       </div>

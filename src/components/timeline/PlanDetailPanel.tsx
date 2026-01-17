@@ -24,9 +24,10 @@ interface PlanDetailPanelProps {
   isOpen: boolean;
   onClose: () => void;
   isNew?: boolean;
+  defaults?: Partial<Plan> | null;
 }
 
-export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false }: PlanDetailPanelProps) => {
+export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults }: PlanDetailPanelProps) => {
   const { updatePlan, addPlan, deletePlan } = usePlans();
   const [formData, setFormData] = useState<Plan | null>(null);
   const [newTag, setNewTag] = useState('');
@@ -38,13 +39,13 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false }: PlanDe
       setFormData({
         id: crypto.randomUUID(),
         title: '',
-        startDate: new Date(),
-        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        channel: 'social',
+        startDate: defaults?.startDate || new Date(),
+        endDate: defaults?.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        channel: defaults?.channel || 'social',
         budget: 0,
         teams: [],
         tags: [],
-        color: PLAN_COLORS[0].value,
+        color: defaults?.color || PLAN_COLORS[0].value,
       });
     }
   }, [plan, isNew]);
