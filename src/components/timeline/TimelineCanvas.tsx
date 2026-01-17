@@ -4,7 +4,7 @@ import { Plan, Channel, CHANNEL_LABELS } from '@/types/plan';
 import { TimelineGrid } from './TimelineGrid';
 import { Swimlane } from './Swimlane';
 import { ResizeIndicatorLine } from './ResizeIndicatorLine';
-import { startOfYear, addDays } from 'date-fns';
+import { startOfYear, addDays, differenceInDays, format } from 'date-fns';
 import { PLAN_COLORS } from '@/types/plan';
 
 interface TimelineCanvasProps {
@@ -20,6 +20,8 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [dragCurrentPos, setDragCurrentPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [dragPlanWidth, setDragPlanWidth] = useState(0);
+  const [previewDates, setPreviewDates] = useState<{ start: Date; end: Date } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,9 +73,20 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
   const groupedPlans = getGroupedPlans();
 
   const handleDragStart = (plan: Plan, e: React.MouseEvent) => {
+    // Calculate the plan's current width
+    const timelineElement = document.querySelector('[data-timeline]');
+    if (timelineElement) {
+      const timelineWidth = timelineElement.clientWidth;
+      const daysInYear = 365;
+      const pixelsPerDay = timelineWidth / daysInYear;
+      const planDuration = differenceInDays(plan.endDate, plan.startDate);
+      setDragPlanWidth(Math.max(60, planDuration * pixelsPerDay));
+    }
+    
     setDraggingPlan(plan);
     setDragStartPos({ x: e.clientX, y: e.clientY });
     setDragCurrentPos({ x: e.clientX, y: e.clientY });
+    setPreviewDates({ start: plan.startDate, end: plan.endDate });
     setIsDragging(true);
   };
 
@@ -82,6 +95,22 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
 
     const handleMouseMove = (e: MouseEvent) => {
       setDragCurrentPos({ x: e.clientX, y: e.clientY });
+
+      // Calculate preview dates based on drag delta
+      const deltaX = e.clientX - dragStartPos.x;
+      const timelineElement = document.querySelector('[data-timeline]');
+      if (timelineElement) {
+        const timelineWidth = timelineElement.clientWidth;
+        const daysInYear = 365;
+        const pixelsPerDay = timelineWidth / daysInYear;
+        const daysDelta = Math.round(deltaX / pixelsPerDay);
+
+        const newStartDate = new Date(draggingPlan.startDate);
+        newStartDate.setDate(newStartDate.getDate() + daysDelta);
+        const newEndDate = new Date(draggingPlan.endDate);
+        newEndDate.setDate(newEndDate.getDate() + daysDelta);
+        setPreviewDates({ start: newStartDate, end: newEndDate });
+      }
 
       // Find which swimlane we're over
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
@@ -129,6 +158,7 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       setDraggingPlan(null);
       setDragTargetChannel(null);
       setIsDragging(false);
+      setPreviewDates(null);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -195,18 +225,34 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
         ))}
       </div>
 
-      {/* Drag ghost */}
-      {isDragging && draggingPlan && (
+      {/* Drag ghost with proper sizing and date tooltips */}
+      {isDragging && draggingPlan && previewDates && (
         <div
-          className="fixed pointer-events-none z-50 rounded-full px-4 py-1.5 text-sm font-semibold shadow-lg opacity-90"
+          className="fixed pointer-events-none z-50 flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold shadow-lg"
           style={{
-            left: dragCurrentPos.x - 50,
+            left: dragCurrentPos.x - dragPlanWidth / 2,
             top: dragCurrentPos.y - 15,
+            width: `${dragPlanWidth}px`,
             backgroundColor: draggingPlan.color,
             color: 'hsl(265 4% 12.9%)',
           }}
         >
-          {draggingPlan.title}
+          {/* Start date tooltip */}
+          <div className="absolute -left-1 top-full mt-1 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+            <div className="absolute left-2 bottom-full h-0 w-0 border-x-4 border-b-4 border-x-transparent border-b-foreground" />
+            {format(previewDates.start, 'MMM d, yyyy')}
+          </div>
+
+          <span className="truncate pointer-events-none">{draggingPlan.title}</span>
+          <span className="ml-auto shrink-0 text-xs opacity-75 pointer-events-none">
+            {format(previewDates.start, 'MMM d')} - {format(previewDates.end, 'MMM d')}
+          </span>
+
+          {/* End date tooltip */}
+          <div className="absolute -right-1 top-full mt-1 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+            <div className="absolute right-2 bottom-full h-0 w-0 border-x-4 border-b-4 border-x-transparent border-b-foreground" />
+            {format(previewDates.end, 'MMM d, yyyy')}
+          </div>
         </div>
       )}
     </div>
