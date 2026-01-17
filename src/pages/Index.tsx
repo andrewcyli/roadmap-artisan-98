@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PlansProvider, usePlans } from '@/context/PlansContext';
+import { ResizeIndicatorProvider } from '@/context/ResizeIndicatorContext';
 import { TimelineHeader } from '@/components/timeline/TimelineHeader';
 import { TimelineCanvas } from '@/components/timeline/TimelineCanvas';
 import { PlanDetailPanel } from '@/components/timeline/PlanDetailPanel';
@@ -66,7 +67,9 @@ const TimelineApp = () => {
 const Index = () => {
   return (
     <PlansProvider>
-      <TimelineApp />
+      <ResizeIndicatorProvider>
+        <TimelineApp />
+      </ResizeIndicatorProvider>
     </PlansProvider>
   );
 };
