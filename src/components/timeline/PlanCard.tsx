@@ -32,11 +32,24 @@ export const PlanCard = ({
   const [originalWidth, setOriginalWidth] = useState(0);
   const [currentOffset, setCurrentOffset] = useState(startOffset);
   const [currentWidth, setCurrentWidth] = useState(width);
+  const [previewStartDate, setPreviewStartDate] = useState<Date | null>(null);
+  const [previewEndDate, setPreviewEndDate] = useState<Date | null>(null);
 
   useEffect(() => {
     setCurrentOffset(startOffset);
     setCurrentWidth(width);
   }, [startOffset, width]);
+
+  // Calculate preview dates during resize
+  const getPixelsPerDay = () => {
+    const timelineElement = document.querySelector('[data-timeline]');
+    if (timelineElement) {
+      const timelineWidth = timelineElement.clientWidth;
+      const daysInYear = 365;
+      return timelineWidth / daysInYear;
+    }
+    return 1;
+  };
 
   const handleResizeStartBegin = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -66,16 +79,31 @@ export const PlanCard = ({
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      const pixelsPerDay = getPixelsPerDay();
+      
       if (isResizingStart) {
         const deltaX = e.clientX - dragStartX;
         const newOffset = Math.max(0, originalOffset + deltaX);
         const newWidth = Math.max(60, originalWidth - deltaX);
         setCurrentOffset(newOffset);
         setCurrentWidth(newWidth);
+        
+        // Calculate preview start date
+        const daysDelta = Math.round((newOffset - originalOffset) / pixelsPerDay);
+        const newStartDate = new Date(plan.startDate);
+        newStartDate.setDate(newStartDate.getDate() + daysDelta);
+        setPreviewStartDate(newStartDate);
       }
       if (isResizingEnd) {
         const deltaX = e.clientX - dragStartX;
-        setCurrentWidth(Math.max(60, originalWidth + deltaX));
+        const newWidth = Math.max(60, originalWidth + deltaX);
+        setCurrentWidth(newWidth);
+        
+        // Calculate preview end date
+        const daysDelta = Math.round((newWidth - originalWidth) / pixelsPerDay);
+        const newEndDate = new Date(plan.endDate);
+        newEndDate.setDate(newEndDate.getDate() + daysDelta);
+        setPreviewEndDate(newEndDate);
       }
     };
 
@@ -116,6 +144,8 @@ export const PlanCard = ({
       }
       setIsResizingStart(false);
       setIsResizingEnd(false);
+      setPreviewStartDate(null);
+      setPreviewEndDate(null);
     };
 
     if (isResizingStart || isResizingEnd) {
@@ -153,6 +183,22 @@ export const PlanCard = ({
         onDoubleClick();
       }}
     >
+      {/* Start date tooltip */}
+      {isResizingStart && previewStartDate && (
+        <div className="absolute -left-1 -top-8 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+          {format(previewStartDate, 'MMM d, yyyy')}
+          <div className="absolute left-2 top-full h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-foreground" />
+        </div>
+      )}
+
+      {/* End date tooltip */}
+      {isResizingEnd && previewEndDate && (
+        <div className="absolute -right-1 -top-8 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+          {format(previewEndDate, 'MMM d, yyyy')}
+          <div className="absolute right-2 top-full h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-foreground" />
+        </div>
+      )}
+
       {/* Resize handle - Start */}
       <div
         className="resize-handle-start absolute left-0 top-0 h-full w-3 cursor-ew-resize rounded-l-full hover:bg-foreground/10"
