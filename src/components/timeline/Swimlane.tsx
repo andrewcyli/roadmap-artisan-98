@@ -1,8 +1,10 @@
 import { Plan } from '@/types/plan';
 import { PlanCard } from './PlanCard';
+import { PlanConnectionLines } from './PlanConnectionLines';
 import { usePlans } from '@/context/PlansContext';
 import { startOfYear, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
 
 interface SwimlaneProps {
   label: string;
@@ -117,6 +119,9 @@ export const Swimlane = ({
         onDragOver={(e) => onDragOver(e, labelId)}
         onDrop={(e) => onDrop(e, labelId)}
       >
+        {/* Connection lines between parent and child plans */}
+        <PlanConnectionLines plans={plans} planStackMap={planStackMap} />
+        
         {plans.map((plan) => {
           const startDayOfYear = differenceInDays(plan.startDate, yearStart);
           const planDuration = differenceInDays(plan.endDate, plan.startDate);
