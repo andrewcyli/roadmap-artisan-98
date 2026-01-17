@@ -1,5 +1,5 @@
 import { Plan, CardDensity } from '@/types/plan';
-import { PlanCard } from './PlanCard';
+import { PlanCard, calculatePlanOverflowWidth } from './PlanCard';
 import { PlanConnectionLines } from './PlanConnectionLines';
 import { usePlans } from '@/context/PlansContext';
 import { startOfYear, differenceInDays } from 'date-fns';
@@ -25,7 +25,7 @@ interface SwimlaneProps {
   onDuplicatePlan: (plan: Plan) => void;
 }
 
-const MIN_CARD_WIDTH_FOR_CONTENT = 100;
+const MIN_BAR_WIDTH_FOR_CONTENT = 120;
 
 export const Swimlane = ({ 
   label, 
@@ -49,30 +49,20 @@ export const Swimlane = ({
   const yearStart = startOfYear(new Date(2025, 0, 1));
   const daysInYear = 365;
 
-  // Get row height based on card density - now accounts for potential individual overrides
-  const getRowHeight = (density: CardDensity) => {
-    switch (density) {
-      case 'condensed': return 36;
-      case 'standard': return 60; // Increased for 2 rows of content
-      case 'comprehensive': return 108; // Increased for 4 rows of content
+  // Get row height based on card density - matching PlanCard heights
+  const getRowHeight = (density: CardDensity, plan?: Plan): number => {
+    const effectiveDensity = plan?.displayDensity || density;
+    switch (effectiveDensity) {
+      case 'condensed': return 40;
+      case 'standard': return 60;
+      case 'comprehensive': return 88;
+      default: return 60;
     }
   };
 
-  // Calculate overflow width for a plan
-  const calculateOverflowWidth = (plan: Plan) => {
-    const timelineEl = document.querySelector('[data-timeline]');
-    if (!timelineEl) return 0;
-    
-    const timelineWidth = timelineEl.clientWidth;
-    const pixelsPerDay = timelineWidth / daysInYear;
-    const planDuration = differenceInDays(plan.endDate, plan.startDate);
-    const cardWidth = Math.max(40, planDuration * pixelsPerDay);
-    
-    if (cardWidth >= MIN_CARD_WIDTH_FOR_CONTENT) return 0;
-    
-    const titleLength = plan.title.length * 7;
-    const dateLength = 80;
-    return Math.max(120, titleLength + dateLength + 16);
+  // Calculate overflow width for a plan using shared function
+  const calculateOverflowWidth = (plan: Plan, cardWidth: number) => {
+    return calculatePlanOverflowWidth(plan, cardWidth, cardDensity);
   };
 
   // Calculate positions for each plan with collision detection
@@ -92,7 +82,7 @@ export const Swimlane = ({
       const startDayOfYear = differenceInDays(plan.startDate, yearStart);
       const planDuration = differenceInDays(plan.endDate, plan.startDate);
       const cardWidth = Math.max(40, planDuration * pixelsPerDay);
-      const overflowWidth = calculateOverflowWidth(plan);
+      const overflowWidth = calculateOverflowWidth(plan, cardWidth);
       const effectiveWidth = cardWidth + overflowWidth;
       const startPixel = startDayOfYear * pixelsPerDay;
       const effectiveEndPixel = startPixel + effectiveWidth;
