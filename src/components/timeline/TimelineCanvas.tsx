@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePlans } from '@/context/PlansContext';
-import { Plan, Channel, CHANNEL_LABELS } from '@/types/plan';
+import { useLabels } from '@/context/LabelsContext';
+import { Plan, Label } from '@/types/plan';
 import { TimelineGrid } from './TimelineGrid';
 import { Swimlane } from './Swimlane';
 import { ResizeIndicatorLine } from './ResizeIndicatorLine';
@@ -9,14 +10,15 @@ import { PLAN_COLORS } from '@/types/plan';
 
 interface TimelineCanvasProps {
   onPlanDoubleClick: (plan: Plan) => void;
-  onCreatePlan: (channel: Channel, startDate: Date) => void;
+  onCreatePlan: (labelId: string, startDate: Date) => void;
 }
 
 export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanvasProps) => {
-  const { plans, groupBy, filterText, updatePlan } = usePlans();
+  const { plans, filterText, updatePlan } = usePlans();
+  const { activeSwimlaneTypeId, getLabelsByType, getLabelName } = useLabels();
   const [, setForceRender] = useState(0);
   const [draggingPlan, setDraggingPlan] = useState<Plan | null>(null);
-  const [dragTargetChannel, setDragTargetChannel] = useState<Channel | null>(null);
+  const [dragTargetLabelId, setDragTargetLabelId] = useState<string | null>(null);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [dragCurrentPos, setDragCurrentPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -44,30 +46,31 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
     );
   });
 
-  // Group plans
-  const getGroupedPlans = (): { label: string; plans: Plan[]; channelKey?: Channel }[] => {
-    if (groupBy === 'channel') {
-      const channels: Channel[] = ['social', 'email', 'events', 'ads', 'content'];
-      return channels.map((channel) => ({
-        label: CHANNEL_LABELS[channel],
-        channelKey: channel,
-        plans: filteredPlans.filter((p) => p.channel === channel),
-      }));
-    } else {
-      const tagGroups = new Map<string, Plan[]>();
-      filteredPlans.forEach((plan) => {
-        plan.tags.forEach((tag) => {
-          if (!tagGroups.has(tag)) {
-            tagGroups.set(tag, []);
-          }
-          tagGroups.get(tag)!.push(plan);
-        });
+  // Group plans by active swimlane label type
+  const getGroupedPlans = (): { label: string; labelId: string; labelColor: string; plans: Plan[] }[] => {
+    const activeLabels = getLabelsByType(activeSwimlaneTypeId);
+    
+    const groups = activeLabels.map((label) => ({
+      label: label.name,
+      labelId: label.id,
+      labelColor: label.color,
+      plans: filteredPlans.filter((p) => p.labels[activeSwimlaneTypeId] === label.id),
+    }));
+
+    // Add "Unassigned" group for plans without a label for this type
+    const unassignedPlans = filteredPlans.filter(
+      (p) => !p.labels[activeSwimlaneTypeId]
+    );
+    if (unassignedPlans.length > 0) {
+      groups.push({
+        label: 'Unassigned',
+        labelId: '__unassigned__',
+        labelColor: 'hsl(220 14% 60%)',
+        plans: unassignedPlans,
       });
-      return Array.from(tagGroups.entries()).map(([tag, plans]) => ({
-        label: tag,
-        plans,
-      }));
     }
+
+    return groups;
   };
 
   const groupedPlans = getGroupedPlans();
@@ -114,12 +117,12 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
 
       // Find which swimlane we're over
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
-      const swimlane = elements.find((el) => el.hasAttribute('data-channel'));
+      const swimlane = elements.find((el) => el.hasAttribute('data-label-id'));
       if (swimlane) {
-        const channel = swimlane.getAttribute('data-channel') as Channel;
-        setDragTargetChannel(channel);
+        const labelId = swimlane.getAttribute('data-label-id');
+        setDragTargetLabelId(labelId);
       } else {
-        setDragTargetChannel(null);
+        setDragTargetLabelId(null);
       }
     };
 
@@ -146,9 +149,13 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
             endDate: newEndDate,
           };
 
-          // Update channel if dropped on different lane
-          if (dragTargetChannel && dragTargetChannel !== draggingPlan.channel) {
-            updatedPlan.channel = dragTargetChannel;
+          // Update label if dropped on different lane
+          const currentLabelId = draggingPlan.labels[activeSwimlaneTypeId];
+          if (dragTargetLabelId && dragTargetLabelId !== currentLabelId && dragTargetLabelId !== '__unassigned__') {
+            updatedPlan.labels = {
+              ...updatedPlan.labels,
+              [activeSwimlaneTypeId]: dragTargetLabelId,
+            };
           }
 
           updatePlan(updatedPlan);
@@ -156,7 +163,7 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       }
 
       setDraggingPlan(null);
-      setDragTargetChannel(null);
+      setDragTargetLabelId(null);
       setIsDragging(false);
       setPreviewDates(null);
     };
@@ -168,10 +175,10 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, draggingPlan, dragStartPos, dragTargetChannel, updatePlan]);
+  }, [isDragging, draggingPlan, dragStartPos, dragTargetLabelId, updatePlan, activeSwimlaneTypeId]);
 
-  const handleEmptyClick = (channel: Channel | undefined, clickX: number) => {
-    if (!channel || groupBy !== 'channel') return;
+  const handleEmptyClick = (labelId: string | undefined, clickX: number) => {
+    if (!labelId || labelId === '__unassigned__') return;
     
     // Convert click position to date
     const timelineElement = document.querySelector('[data-timeline]');
@@ -184,20 +191,20 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       const yearStart = startOfYear(new Date(2025, 0, 1));
       const clickDate = addDays(yearStart, dayOfYear);
       
-      onCreatePlan(channel, clickDate);
+      onCreatePlan(labelId, clickDate);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent, channel: Channel | undefined) => {
+  const handleDragOver = (e: React.DragEvent, labelId: string | undefined) => {
     e.preventDefault();
-    if (channel) {
-      setDragTargetChannel(channel);
+    if (labelId) {
+      setDragTargetLabelId(labelId);
     }
   };
 
-  const handleDrop = (e: React.DragEvent, channel: Channel | undefined) => {
+  const handleDrop = (e: React.DragEvent, labelId: string | undefined) => {
     e.preventDefault();
-    setDragTargetChannel(null);
+    setDragTargetLabelId(null);
   };
 
   return (
@@ -210,16 +217,17 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       <div className="relative flex-1 overflow-y-auto">
         {groupedPlans.map((group) => (
           <Swimlane
-            key={group.label}
+            key={group.labelId}
             label={group.label}
-            channelKey={group.channelKey}
+            labelId={group.labelId}
+            labelColor={group.labelColor}
             plans={group.plans}
             onPlanDoubleClick={onPlanDoubleClick}
             onEmptyClick={handleEmptyClick}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            isDragTarget={dragTargetChannel === group.channelKey && draggingPlan?.channel !== group.channelKey}
+            isDragTarget={dragTargetLabelId === group.labelId && draggingPlan?.labels[activeSwimlaneTypeId] !== group.labelId}
             draggingPlan={draggingPlan}
           />
         ))}

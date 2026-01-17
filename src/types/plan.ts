@@ -1,19 +1,50 @@
-export type Channel = 'social' | 'email' | 'events' | 'ads' | 'content';
-export type Team = 'growth' | 'brand' | 'content' | 'design' | 'copy';
 export type ZoomLevel = 'year' | 'quarter' | 'month';
-export type GroupBy = 'channel' | 'campaign';
 
+// Label Types - user can create custom label categories
+export interface LabelType {
+  id: string;
+  name: string;           // e.g., "Campaign", "Channel", "Business Unit"
+  pluralName: string;     // e.g., "Campaigns", "Channels", "Business Units"
+  icon?: string;          // lucide icon name
+  color: string;          // HSL color string
+}
+
+// Individual Label within a type
+export interface Label {
+  id: string;
+  typeId: string;         // references LabelType
+  name: string;           // e.g., "Social Media", "Q1 Launch"
+  color: string;          // HSL color string
+  order: number;          // for sorting in swimlanes
+}
+
+// Updated Plan interface with flexible labels and hierarchy
 export interface Plan {
   id: string;
   title: string;
+  description?: string;
   startDate: Date;
   endDate: Date;
-  channel: Channel;
   budget: number;
-  teams: Team[];
-  tags: string[];
   color: string;
+  
+  // Flexible labels (replaces fixed channel/teams)
+  // Key is labelTypeId, value is labelId
+  labels: Record<string, string>;
+  
+  // Tags for filtering only (not for swimlane organization)
+  tags: string[];
+  
+  // Hierarchical relationships
+  parentPlanId: string | null;
+  useRelativeDates: boolean;       // When true, dates are offsets from parent
+  relativeStartOffset?: number;    // Days from parent start
+  relativeEndOffset?: number;      // Days from parent start
 }
+
+// Legacy types for backward compatibility during migration
+export type Channel = 'social' | 'email' | 'events' | 'ads' | 'content';
+export type Team = 'growth' | 'brand' | 'content' | 'design' | 'copy';
 
 export const CHANNEL_LABELS: Record<Channel, string> = {
   social: 'Social Media',
@@ -41,3 +72,10 @@ export const PLAN_COLORS = [
   { name: 'Yellow', value: 'hsl(45 85% 70%)' },
   { name: 'Red', value: 'hsl(0 75% 70%)' },
 ];
+
+// Default label type IDs for quick access
+export const DEFAULT_LABEL_TYPES = {
+  CHANNEL: 'channel',
+  TEAM: 'team',
+  CAMPAIGN: 'campaign',
+} as const;

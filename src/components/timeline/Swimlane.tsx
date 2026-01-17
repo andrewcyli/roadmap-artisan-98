@@ -1,4 +1,4 @@
-import { Plan, Channel, CHANNEL_LABELS } from '@/types/plan';
+import { Plan } from '@/types/plan';
 import { PlanCard } from './PlanCard';
 import { usePlans } from '@/context/PlansContext';
 import { startOfYear, differenceInDays } from 'date-fns';
@@ -6,28 +6,22 @@ import { cn } from '@/lib/utils';
 
 interface SwimlaneProps {
   label: string;
-  channelKey?: Channel;
+  labelId: string;
+  labelColor: string;
   plans: Plan[];
   onPlanDoubleClick: (plan: Plan) => void;
-  onEmptyClick: (channel: Channel | undefined, clickX: number) => void;
+  onEmptyClick: (labelId: string | undefined, clickX: number) => void;
   onDragStart: (plan: Plan, e: React.MouseEvent) => void;
-  onDragOver: (e: React.DragEvent, channel: Channel | undefined) => void;
-  onDrop: (e: React.DragEvent, channel: Channel | undefined) => void;
+  onDragOver: (e: React.DragEvent, labelId: string | undefined) => void;
+  onDrop: (e: React.DragEvent, labelId: string | undefined) => void;
   isDragTarget: boolean;
   draggingPlan: Plan | null;
 }
 
-const SWIMLANE_COLORS: Record<Channel, string> = {
-  social: 'bg-[hsl(var(--swimlane-social))]',
-  email: 'bg-[hsl(var(--swimlane-email))]',
-  events: 'bg-[hsl(var(--swimlane-events))]',
-  ads: 'bg-[hsl(var(--swimlane-ads))]',
-  content: 'bg-[hsl(var(--swimlane-content))]',
-};
-
 export const Swimlane = ({ 
   label, 
-  channelKey,
+  labelId,
+  labelColor,
   plans, 
   onPlanDoubleClick, 
   onEmptyClick,
@@ -83,29 +77,43 @@ export const Swimlane = ({
     
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
-    onEmptyClick(channelKey, clickX);
+    onEmptyClick(labelId, clickX);
+  };
+
+  // Convert label color to a subtle background using CSS variable approach
+  const getLaneStyle = () => {
+    // Use the label color with very low opacity for the lane background
+    return {
+      backgroundColor: labelColor.replace(')', ' / 0.08)').replace('hsl(', 'hsla('),
+    };
   };
 
   return (
     <div className="flex border-b border-border">
       {/* Label Column */}
-      <div className="flex w-48 shrink-0 items-center border-r border-border bg-muted/50 px-4 py-3">
-        <span className="text-sm font-medium text-foreground">{label}</span>
+      <div className="flex w-48 shrink-0 items-center gap-2 border-r border-border bg-muted/50 px-4 py-3">
+        <div 
+          className="h-3 w-3 rounded-full shrink-0" 
+          style={{ backgroundColor: labelColor }}
+        />
+        <span className="text-sm font-medium text-foreground truncate">{label}</span>
       </div>
 
       {/* Timeline Area */}
       <div
         className={cn(
           'relative flex-1 transition-colors',
-          channelKey && SWIMLANE_COLORS[channelKey],
           isDragTarget && 'ring-2 ring-inset ring-primary/50 bg-primary/5',
         )}
-        style={{ minHeight: `${minHeight}px` }}
+        style={{ 
+          minHeight: `${minHeight}px`,
+          ...(!isDragTarget ? getLaneStyle() : {}),
+        }}
         data-timeline
-        data-channel={channelKey}
+        data-label-id={labelId}
         onClick={handleLaneClick}
-        onDragOver={(e) => onDragOver(e, channelKey)}
-        onDrop={(e) => onDrop(e, channelKey)}
+        onDragOver={(e) => onDragOver(e, labelId)}
+        onDrop={(e) => onDrop(e, labelId)}
       >
         {plans.map((plan) => {
           const startDayOfYear = differenceInDays(plan.startDate, yearStart);
