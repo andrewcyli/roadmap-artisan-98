@@ -172,9 +172,12 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
 
   return (
     <div ref={containerRef} className="relative flex flex-1 flex-col overflow-hidden bg-background">
+      {/* Resize indicator that spans the entire timeline including header */}
+      <div className="absolute left-48 right-0 top-0 bottom-0 pointer-events-none z-40">
+        <ResizeIndicatorLine />
+      </div>
       <TimelineGrid />
       <div className="relative flex-1 overflow-y-auto">
-        <ResizeIndicatorLine />
         {groupedPlans.map((group) => (
           <Swimlane
             key={group.label}

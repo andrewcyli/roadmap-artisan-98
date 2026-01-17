@@ -100,16 +100,7 @@ export const PlanCard = ({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const pixelsPerDay = getPixelsPerDay();
-      
-      // Update resize indicator line
       const timelineElement = document.querySelector('[data-timeline]');
-      if (timelineElement) {
-        setIndicator({
-          isActive: true,
-          cursorX: e.clientX,
-          timelineLeft: timelineElement.getBoundingClientRect().left,
-        });
-      }
       
       if (isResizingStart) {
         const deltaX = e.clientX - dragStartX;
@@ -124,6 +115,17 @@ export const PlanCard = ({
         rawStartDate.setDate(rawStartDate.getDate() + daysDelta);
         const snappedStartDate = snapDate(rawStartDate, true);
         setPreviewStartDate(snappedStartDate);
+        
+        // Update resize indicator line at the left edge of the plan bar
+        if (timelineElement) {
+          const timelineRect = timelineElement.getBoundingClientRect();
+          setIndicator({
+            isActive: true,
+            edgeX: newOffset,
+            isStart: true,
+            previewDate: snappedStartDate,
+          });
+        }
       }
       if (isResizingEnd) {
         const deltaX = e.clientX - dragStartX;
@@ -136,6 +138,16 @@ export const PlanCard = ({
         rawEndDate.setDate(rawEndDate.getDate() + daysDelta);
         const snappedEndDate = snapDate(rawEndDate, false);
         setPreviewEndDate(snappedEndDate);
+        
+        // Update resize indicator line at the right edge of the plan bar
+        if (timelineElement) {
+          setIndicator({
+            isActive: true,
+            edgeX: currentOffset + newWidth,
+            isStart: false,
+            previewDate: snappedEndDate,
+          });
+        }
       }
     };
 
@@ -218,19 +230,19 @@ export const PlanCard = ({
         onDoubleClick();
       }}
     >
-      {/* Start date tooltip */}
+      {/* Start date tooltip - positioned below to avoid header overlap */}
       {isResizingStart && previewStartDate && (
-        <div className="absolute -left-1 -top-8 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+        <div className="absolute -left-1 top-full mt-1 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+          <div className="absolute left-2 bottom-full h-0 w-0 border-x-4 border-b-4 border-x-transparent border-b-foreground" />
           {format(previewStartDate, 'MMM d, yyyy')}
-          <div className="absolute left-2 top-full h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-foreground" />
         </div>
       )}
 
-      {/* End date tooltip */}
+      {/* End date tooltip - positioned below to avoid header overlap */}
       {isResizingEnd && previewEndDate && (
-        <div className="absolute -right-1 -top-8 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+        <div className="absolute -right-1 top-full mt-1 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+          <div className="absolute right-2 bottom-full h-0 w-0 border-x-4 border-b-4 border-x-transparent border-b-foreground" />
           {format(previewEndDate, 'MMM d, yyyy')}
-          <div className="absolute right-2 top-full h-0 w-0 border-x-4 border-t-4 border-x-transparent border-t-foreground" />
         </div>
       )}
 

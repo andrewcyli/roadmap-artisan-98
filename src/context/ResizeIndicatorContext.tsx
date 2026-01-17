@@ -2,8 +2,9 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ResizeIndicatorState {
   isActive: boolean;
-  cursorX: number;
-  timelineLeft: number;
+  edgeX: number; // The X position of the plan bar edge being resized (relative to timeline)
+  isStart: boolean; // Whether resizing start or end
+  previewDate: Date | null;
 }
 
 interface ResizeIndicatorContextType {
@@ -17,8 +18,9 @@ const ResizeIndicatorContext = createContext<ResizeIndicatorContextType | undefi
 export const ResizeIndicatorProvider = ({ children }: { children: ReactNode }) => {
   const [indicator, setIndicatorState] = useState<ResizeIndicatorState>({
     isActive: false,
-    cursorX: 0,
-    timelineLeft: 0,
+    edgeX: 0,
+    isStart: true,
+    previewDate: null,
   });
 
   const setIndicator = (state: ResizeIndicatorState) => {
@@ -26,7 +28,7 @@ export const ResizeIndicatorProvider = ({ children }: { children: ReactNode }) =
   };
 
   const clearIndicator = () => {
-    setIndicatorState({ isActive: false, cursorX: 0, timelineLeft: 0 });
+    setIndicatorState({ isActive: false, edgeX: 0, isStart: true, previewDate: null });
   };
 
   return (
