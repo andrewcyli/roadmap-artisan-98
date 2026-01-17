@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Plan, ZoomLevel, GroupBy } from '@/types/plan';
 import { mockPlans } from '@/data/mockPlans';
 
+export type SnapMode = 'none' | 'week' | 'month';
+
 interface PlansContextType {
   plans: Plan[];
   setPlans: React.Dispatch<React.SetStateAction<Plan[]>>;
@@ -13,6 +15,8 @@ interface PlansContextType {
   setGroupBy: React.Dispatch<React.SetStateAction<GroupBy>>;
   filterText: string;
   setFilterText: React.Dispatch<React.SetStateAction<string>>;
+  snapMode: SnapMode;
+  setSnapMode: React.Dispatch<React.SetStateAction<SnapMode>>;
   updatePlan: (updatedPlan: Plan) => void;
   addPlan: (plan: Plan) => void;
   deletePlan: (id: string) => void;
@@ -26,6 +30,7 @@ export const PlansProvider = ({ children }: { children: ReactNode }) => {
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('year');
   const [groupBy, setGroupBy] = useState<GroupBy>('channel');
   const [filterText, setFilterText] = useState('');
+  const [snapMode, setSnapMode] = useState<SnapMode>('week');
 
   const updatePlan = (updatedPlan: Plan) => {
     setPlans((prev) =>
@@ -54,6 +59,8 @@ export const PlansProvider = ({ children }: { children: ReactNode }) => {
         setGroupBy,
         filterText,
         setFilterText,
+        snapMode,
+        setSnapMode,
         updatePlan,
         addPlan,
         deletePlan,

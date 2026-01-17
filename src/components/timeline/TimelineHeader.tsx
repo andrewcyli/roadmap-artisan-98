@@ -1,4 +1,4 @@
-import { usePlans } from '@/context/PlansContext';
+import { usePlans, SnapMode } from '@/context/PlansContext';
 import { ZoomLevel, GroupBy } from '@/types/plan';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,14 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Calendar, Layers, Plus } from 'lucide-react';
+import { Search, Calendar, Layers, Plus, Magnet } from 'lucide-react';
 
 interface TimelineHeaderProps {
   onAddPlan: () => void;
 }
 
 export const TimelineHeader = ({ onAddPlan }: TimelineHeaderProps) => {
-  const { zoomLevel, setZoomLevel, groupBy, setGroupBy, filterText, setFilterText } = usePlans();
+  const { zoomLevel, setZoomLevel, groupBy, setGroupBy, filterText, setFilterText, snapMode, setSnapMode } = usePlans();
 
   return (
     <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-4">
@@ -52,6 +52,21 @@ export const TimelineHeader = ({ onAddPlan }: TimelineHeaderProps) => {
             <SelectContent>
               <SelectItem value="channel">By Channel</SelectItem>
               <SelectItem value="campaign">By Campaign</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Snap Mode */}
+        <div className="flex items-center gap-2">
+          <Magnet className="h-4 w-4 text-muted-foreground" />
+          <Select value={snapMode} onValueChange={(v) => setSnapMode(v as SnapMode)}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Snap" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No Snap</SelectItem>
+              <SelectItem value="week">Snap to Week</SelectItem>
+              <SelectItem value="month">Snap to Month</SelectItem>
             </SelectContent>
           </Select>
         </div>
