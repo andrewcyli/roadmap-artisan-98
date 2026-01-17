@@ -111,20 +111,22 @@ export const PlanCard = ({
     return 1;
   };
 
-  const handleResizeStartBegin = (e: React.MouseEvent) => {
+  const handleResizeStartBegin = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     setIsResizingStart(true);
-    setDragStartX(e.clientX);
+    setDragStartX(clientX);
     setOriginalOffset(currentOffset);
     setOriginalWidth(currentWidth);
   };
 
-  const handleResizeEndBegin = (e: React.MouseEvent) => {
+  const handleResizeEndBegin = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     setIsResizingEnd(true);
-    setDragStartX(e.clientX);
+    setDragStartX(clientX);
     setOriginalWidth(currentWidth);
   };
 
@@ -136,13 +138,16 @@ export const PlanCard = ({
     setIsLongPressing(false);
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.MouseEvent | React.TouchEvent) => {
     const target = e.target as HTMLElement;
     if (target.classList.contains('resize-handle-start') || target.classList.contains('resize-handle-end')) {
       return;
     }
     
-    mouseDownPos.current = { x: e.clientX, y: e.clientY };
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    mouseDownPos.current = { x: clientX, y: clientY };
     hasDragged.current = false;
     
     setIsLongPressing(true);
@@ -154,25 +159,27 @@ export const PlanCard = ({
     e.stopPropagation();
   };
 
-  const handleMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback(() => {
     if (longPressTimer.current && !menuOpen) {
       clearLongPressTimer();
     }
   }, [clearLongPressTimer, menuOpen]);
 
-  const handleMouseLeave = useCallback(() => {
+  const handlePointerLeave = useCallback(() => {
     clearLongPressTimer();
   }, [clearLongPressTimer]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handlePointerMove = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (mouseDownPos.current) {
-      const dx = Math.abs(e.clientX - mouseDownPos.current.x);
-      const dy = Math.abs(e.clientY - mouseDownPos.current.y);
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      const dx = Math.abs(clientX - mouseDownPos.current.x);
+      const dy = Math.abs(clientY - mouseDownPos.current.y);
       if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
         hasDragged.current = true;
         if (isLongPressing && longPressTimer.current) {
           clearLongPressTimer();
-          onDragStart(plan, e);
+          onDragStart(plan, e as React.MouseEvent);
         }
       }
     }
@@ -385,8 +392,9 @@ export const PlanCard = ({
 
       {/* Resize handle - Start */}
       <div
-        className="resize-handle-start absolute left-0 top-0 h-full w-2 cursor-ew-resize hover:bg-foreground/10 rounded-l-xl z-10"
+        className="resize-handle-start absolute left-0 top-0 h-full w-3 sm:w-2 cursor-ew-resize hover:bg-foreground/10 rounded-l-xl z-10 touch-none"
         onMouseDown={handleResizeStartBegin}
+        onTouchStart={handleResizeStartBegin}
       />
 
       {/* Content inside bar - only if wide enough */}
@@ -403,8 +411,9 @@ export const PlanCard = ({
 
       {/* Resize handle - End */}
       <div
-        className="resize-handle-end absolute right-0 top-0 h-full w-2 cursor-ew-resize hover:bg-foreground/10 rounded-r-xl z-10"
+        className="resize-handle-end absolute right-0 top-0 h-full w-3 sm:w-2 cursor-ew-resize hover:bg-foreground/10 rounded-r-xl z-10 touch-none"
         onMouseDown={handleResizeEndBegin}
+        onTouchStart={handleResizeEndBegin}
       />
 
       {/* Start date tooltip */}
@@ -579,10 +588,13 @@ export const PlanCard = ({
             top: `${stackIndex * rowHeight + 8}px`,
             height: `${cardHeight}px`,
           }}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onMouseMove={handleMouseMove}
+          onMouseDown={handlePointerDown}
+          onMouseUp={handlePointerUp}
+          onMouseLeave={handlePointerLeave}
+          onMouseMove={handlePointerMove}
+          onTouchStart={handlePointerDown}
+          onTouchEnd={handlePointerUp}
+          onTouchMove={handlePointerMove}
           onDoubleClick={(e) => {
             e.stopPropagation();
             if (!hasDragged.current && !isResizing) {

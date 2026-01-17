@@ -79,7 +79,7 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
 
   const groupedPlans = getGroupedPlans();
 
-  const handleDragStart = (plan: Plan, e: React.MouseEvent) => {
+  const handleDragStart = (plan: Plan, e: React.MouseEvent | React.TouchEvent) => {
     // Calculate the plan's current width
     const timelineElement = document.querySelector('[data-timeline]');
     if (timelineElement) {
@@ -90,9 +90,13 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       setDragPlanWidth(Math.max(60, planDuration * pixelsPerDay));
     }
     
+    // Get coordinates from either mouse or touch event
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
     setDraggingPlan(plan);
-    setDragStartPos({ x: e.clientX, y: e.clientY });
-    setDragCurrentPos({ x: e.clientX, y: e.clientY });
+    setDragStartPos({ x: clientX, y: clientY });
+    setDragCurrentPos({ x: clientX, y: clientY });
     setPreviewDates({ start: plan.startDate, end: plan.endDate });
     setIsDragging(true);
   };
@@ -100,11 +104,11 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
   useEffect(() => {
     if (!isDragging || !draggingPlan) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      setDragCurrentPos({ x: e.clientX, y: e.clientY });
+    const handleMove = (clientX: number, clientY: number) => {
+      setDragCurrentPos({ x: clientX, y: clientY });
 
       // Calculate preview dates based on drag delta
-      const deltaX = e.clientX - dragStartPos.x;
+      const deltaX = clientX - dragStartPos.x;
       const timelineElement = document.querySelector('[data-timeline]');
       if (timelineElement) {
         const timelineWidth = timelineElement.clientWidth;
@@ -120,7 +124,7 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       }
 
       // Find which swimlane we're over
-      const elements = document.elementsFromPoint(e.clientX, e.clientY);
+      const elements = document.elementsFromPoint(clientX, clientY);
       const swimlane = elements.find((el) => el.hasAttribute('data-label-id'));
       if (swimlane) {
         const labelId = swimlane.getAttribute('data-label-id');
@@ -150,7 +154,7 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       }
     };
 
-    const handleMouseUp = (e: MouseEvent) => {
+    const handleEnd = (clientX: number, clientY: number) => {
       if (draggingPlan && isDragging) {
         // Check if dropped on another plan for nesting
         if (dropTargetPlan) {
@@ -165,7 +169,7 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
           return;
         }
 
-        const deltaX = e.clientX - dragStartPos.x;
+        const deltaX = clientX - dragStartPos.x;
         
         // Calculate date change
         const timelineElement = document.querySelector('[data-timeline]');
@@ -206,12 +210,29 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       setDropTargetPlan(null);
     };
 
+    const handleMouseMove = (e: MouseEvent) => handleMove(e.clientX, e.clientY);
+    const handleMouseUp = (e: MouseEvent) => handleEnd(e.clientX, e.clientY);
+    
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      handleMove(touch.clientX, touch.clientY);
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      const touch = e.changedTouches[0];
+      handleEnd(touch.clientX, touch.clientY);
+    };
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isDragging, draggingPlan, dragStartPos, dragTargetLabelId, updatePlan, activeSwimlaneTypeId, dropTargetPlan, plans]);
 
