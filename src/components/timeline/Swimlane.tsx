@@ -1,6 +1,5 @@
 import { Plan, CardDensity } from '@/types/plan';
 import { PlanCard, calculatePlanOverflowWidth } from './PlanCard';
-import { PlanConnectionLines } from './PlanConnectionLines';
 import { usePlans } from '@/context/PlansContext';
 import { startOfYear, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -18,9 +17,6 @@ interface SwimlaneProps {
   onDrop: (e: React.DragEvent, labelId: string | undefined) => void;
   isDragTarget: boolean;
   draggingPlan: Plan | null;
-  dropTargetPlanId: string | null;
-  onCreateSubPlan: (parentPlan: Plan) => void;
-  onRemoveFromParent: (plan: Plan) => void;
   onDeletePlan: (plan: Plan) => void;
   onDuplicatePlan: (plan: Plan) => void;
 }
@@ -39,9 +35,6 @@ export const Swimlane = ({
   onDrop,
   isDragTarget,
   draggingPlan,
-  dropTargetPlanId,
-  onCreateSubPlan,
-  onRemoveFromParent,
   onDeletePlan,
   onDuplicatePlan,
 }: SwimlaneProps) => {
@@ -180,9 +173,6 @@ export const Swimlane = ({
         onDragOver={(e) => onDragOver(e, labelId)}
         onDrop={(e) => onDrop(e, labelId)}
       >
-        {/* Connection lines between parent and child plans */}
-        <PlanConnectionLines plans={plans} planStackMap={planStackMap} />
-        
         {plans.map((plan) => {
           const startDayOfYear = differenceInDays(plan.startDate, yearStart);
           const planDuration = differenceInDays(plan.endDate, plan.startDate);
@@ -212,9 +202,6 @@ export const Swimlane = ({
                 onDoubleClick={() => onPlanDoubleClick(plan)}
                 onDragStart={onDragStart}
                 isDraggingExternal={draggingPlan?.id === plan.id}
-                isDropTarget={dropTargetPlanId === plan.id}
-                onCreateSubPlan={onCreateSubPlan}
-                onRemoveFromParent={onRemoveFromParent}
                 onDelete={onDeletePlan}
                 onDuplicate={onDuplicatePlan}
               />

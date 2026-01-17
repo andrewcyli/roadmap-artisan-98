@@ -19,7 +19,7 @@ export interface Label {
   order: number;          // for sorting in swimlanes
 }
 
-// Updated Plan interface with flexible labels and hierarchy
+// Plan interface (simplified - no hierarchy)
 export interface Plan {
   id: string;
   title: string;
@@ -35,12 +35,6 @@ export interface Plan {
   
   // Tags for filtering only (not for swimlane organization)
   tags: string[];
-  
-  // Hierarchical relationships
-  parentPlanId: string | null;
-  useRelativeDates: boolean;       // When true, dates are offsets from parent
-  relativeStartOffset?: number;    // Days from parent start
-  relativeEndOffset?: number;      // Days from parent start
   
   // Individual display density override (null = use global setting)
   displayDensity?: CardDensity | null;
