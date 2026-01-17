@@ -144,13 +144,24 @@ export const Swimlane = ({
 
   return (
     <div className="flex border-b border-border">
-      {/* Label Column */}
-      <div className="flex w-48 shrink-0 items-center gap-2 border-r border-border bg-muted/50 px-4 py-3">
+      {/* Label Column - Responsive width and hidden on mobile */}
+      <div className="hidden sm:flex w-32 md:w-48 shrink-0 items-center gap-2 border-r border-border bg-muted/50 px-2 md:px-4 py-3">
         <div 
-          className="h-3 w-3 rounded-full shrink-0" 
+          className="h-2.5 w-2.5 md:h-3 md:w-3 rounded-full shrink-0" 
           style={{ backgroundColor: labelColor }}
         />
-        <span className="text-sm font-medium text-foreground truncate">{label}</span>
+        <span className="text-xs md:text-sm font-medium text-foreground truncate">{label}</span>
+      </div>
+      {/* Mobile: Floating label indicator */}
+      <div 
+        className="sm:hidden absolute left-1 top-1 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm"
+        style={{ display: 'none' }}
+      >
+        <div 
+          className="h-2 w-2 rounded-full" 
+          style={{ backgroundColor: labelColor }}
+        />
+        <span className="text-[10px] font-medium text-foreground truncate max-w-[60px]">{label}</span>
       </div>
 
       {/* Timeline Area */}
