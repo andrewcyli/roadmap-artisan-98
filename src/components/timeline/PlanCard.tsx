@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plan, Channel } from '@/types/plan';
 import { usePlans } from '@/context/PlansContext';
+import { useResizeIndicator } from '@/context/ResizeIndicatorContext';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,7 @@ export const PlanCard = ({
   isDraggingExternal 
 }: PlanCardProps) => {
   const { updatePlan } = usePlans();
+  const { setIndicator, clearIndicator } = useResizeIndicator();
   const cardRef = useRef<HTMLDivElement>(null);
   const [isResizingStart, setIsResizingStart] = useState(false);
   const [isResizingEnd, setIsResizingEnd] = useState(false);
@@ -80,6 +82,16 @@ export const PlanCard = ({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const pixelsPerDay = getPixelsPerDay();
+      
+      // Update resize indicator line
+      const timelineElement = document.querySelector('[data-timeline]');
+      if (timelineElement) {
+        setIndicator({
+          isActive: true,
+          cursorX: e.clientX,
+          timelineLeft: timelineElement.getBoundingClientRect().left,
+        });
+      }
       
       if (isResizingStart) {
         const deltaX = e.clientX - dragStartX;
@@ -142,6 +154,7 @@ export const PlanCard = ({
           }
         }
       }
+      clearIndicator();
       setIsResizingStart(false);
       setIsResizingEnd(false);
       setPreviewStartDate(null);

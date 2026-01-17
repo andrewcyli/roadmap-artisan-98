@@ -3,6 +3,7 @@ import { usePlans } from '@/context/PlansContext';
 import { Plan, Channel, CHANNEL_LABELS } from '@/types/plan';
 import { TimelineGrid } from './TimelineGrid';
 import { Swimlane } from './Swimlane';
+import { ResizeIndicatorLine } from './ResizeIndicatorLine';
 import { startOfYear, addDays } from 'date-fns';
 import { PLAN_COLORS } from '@/types/plan';
 
@@ -170,9 +171,10 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
   };
 
   return (
-    <div ref={containerRef} className="flex flex-1 flex-col overflow-hidden bg-background">
+    <div ref={containerRef} className="relative flex flex-1 flex-col overflow-hidden bg-background">
       <TimelineGrid />
-      <div className="flex-1 overflow-y-auto">
+      <div className="relative flex-1 overflow-y-auto">
+        <ResizeIndicatorLine />
         {groupedPlans.map((group) => (
           <Swimlane
             key={group.label}
