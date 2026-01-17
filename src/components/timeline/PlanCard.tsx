@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Plan } from '@/types/plan';
+import { Plan, CardDensity } from '@/types/plan';
 import { usePlans } from '@/context/PlansContext';
+import { useLabels } from '@/context/LabelsContext';
 import { useResizeIndicator } from '@/context/ResizeIndicatorContext';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { GitBranch, Plus, Unlink, Pencil, Trash2, Copy } from 'lucide-react';
+import { GitBranch, Plus, Unlink, Pencil, Trash2, Copy, DollarSign } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 
 const LONG_PRESS_DURATION = 400; // ms
 
@@ -18,6 +20,7 @@ interface PlanCardProps {
   startOffset: number;
   width: number;
   stackIndex: number;
+  cardDensity: CardDensity;
   onDoubleClick: () => void;
   onDragStart: (plan: Plan, e: React.MouseEvent) => void;
   isDraggingExternal: boolean;
@@ -33,6 +36,7 @@ export const PlanCard = ({
   startOffset, 
   width, 
   stackIndex, 
+  cardDensity,
   onDoubleClick,
   onDragStart,
   isDraggingExternal,
@@ -43,11 +47,17 @@ export const PlanCard = ({
   onDuplicate,
 }: PlanCardProps) => {
   const { updatePlan, snapMode, getChildPlans } = usePlans();
+  const { labels } = useLabels();
   const { setIndicator, clearIndicator } = useResizeIndicator();
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLongPressing, setIsLongPressing] = useState(false);
+
+  // Get labels for this plan
+  const planLabels = Object.entries(plan.labels)
+    .map(([typeId, labelId]) => labels.find(l => l.id === labelId))
+    .filter(Boolean);
 
   // Snap date to week or month boundary
   const snapDate = (date: Date, isStart: boolean): Date => {
@@ -271,6 +281,127 @@ export const PlanCard = ({
     action();
   };
 
+  // Calculate card height based on density
+  const getCardHeight = () => {
+    switch (cardDensity) {
+      case 'condensed': return 28;
+      case 'standard': return 36;
+      case 'comprehensive': return 68;
+    }
+  };
+
+  const cardHeight = getCardHeight();
+  const rowHeight = cardDensity === 'comprehensive' ? 72 : (cardDensity === 'standard' ? 40 : 32);
+
+  // Format budget for display
+  const formatBudget = (amount: number) => {
+    if (amount >= 1000) {
+      return `$${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)}K`;
+    }
+    return `$${amount}`;
+  };
+
+  const renderCondensedCard = () => (
+    <>
+      {plan.parentPlanId && (
+        <span className="text-[10px] opacity-60 shrink-0">↳</span>
+      )}
+      <span className="truncate text-xs font-semibold pointer-events-none">{plan.title}</span>
+      <span className="ml-auto shrink-0 text-[10px] opacity-75 pointer-events-none">
+        {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
+      </span>
+    </>
+  );
+
+  const renderStandardCard = () => (
+    <>
+      {plan.parentPlanId && (
+        <GitBranch className="h-3 w-3 text-foreground/60 shrink-0" />
+      )}
+      <span className="truncate font-semibold pointer-events-none">{plan.title}</span>
+      
+      {/* Show up to 2 label badges */}
+      <div className="flex gap-1 shrink-0">
+        {planLabels.slice(0, 2).map((label) => (
+          <span
+            key={label!.id}
+            className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/10 truncate max-w-[60px]"
+          >
+            {label!.name}
+          </span>
+        ))}
+      </div>
+      
+      {hasChildren && (
+        <span className="text-xs bg-foreground/20 rounded-full px-1.5 py-0.5 shrink-0">
+          {getChildPlans(plan.id).length}
+        </span>
+      )}
+      
+      <span className="ml-auto shrink-0 text-xs opacity-75 pointer-events-none">
+        {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
+      </span>
+    </>
+  );
+
+  const renderComprehensiveCard = () => (
+    <div className="flex flex-col gap-1 w-full min-w-0 pointer-events-none">
+      {/* Row 1: Title + Date + Budget */}
+      <div className="flex items-center gap-2">
+        {plan.parentPlanId && (
+          <GitBranch className="h-3 w-3 text-foreground/60 shrink-0" />
+        )}
+        <span className="truncate font-semibold text-sm">{plan.title}</span>
+        {hasChildren && (
+          <span className="text-[10px] bg-foreground/20 rounded-full px-1.5 py-0.5 shrink-0">
+            {getChildPlans(plan.id).length} sub
+          </span>
+        )}
+        <span className="ml-auto shrink-0 text-xs opacity-75">
+          {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
+        </span>
+        {plan.budget > 0 && (
+          <span className="shrink-0 text-xs font-medium bg-foreground/15 px-1.5 py-0.5 rounded">
+            {formatBudget(plan.budget)}
+          </span>
+        )}
+      </div>
+      
+      {/* Row 2: Description preview */}
+      {plan.description && (
+        <p className="text-xs opacity-70 truncate">
+          {plan.description}
+        </p>
+      )}
+      
+      {/* Row 3: Labels + Tags */}
+      <div className="flex items-center gap-1 flex-wrap">
+        {planLabels.map((label) => (
+          <span
+            key={label!.id}
+            className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/10 shrink-0"
+            style={{ 
+              backgroundColor: label!.color.replace(')', ' / 0.3)').replace('hsl(', 'hsla('),
+            }}
+          >
+            {label!.name}
+          </span>
+        ))}
+        {plan.tags.slice(0, 3).map((tag) => (
+          <span
+            key={tag}
+            className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/5 border border-foreground/20 shrink-0"
+          >
+            #{tag}
+          </span>
+        ))}
+        {plan.tags.length > 3 && (
+          <span className="text-[10px] opacity-60">+{plan.tags.length - 3}</span>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <Popover open={menuOpen} onOpenChange={setMenuOpen}>
       <PopoverTrigger asChild>
@@ -278,17 +409,22 @@ export const PlanCard = ({
           ref={cardRef}
           data-plan-id={plan.id}
           className={cn(
-            'absolute flex cursor-grab items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium shadow-sm transition-all select-none',
+            'absolute flex cursor-grab items-center gap-2 shadow-sm transition-all select-none',
+            cardDensity === 'comprehensive' 
+              ? 'rounded-lg px-3 py-2' 
+              : 'rounded-full px-3 py-1',
+            cardDensity === 'condensed' && 'px-2',
             isResizing ? 'cursor-col-resize shadow-lg ring-2 ring-primary/30' : 'hover:shadow-md',
             isDraggingExternal && 'opacity-50',
             isDropTarget && 'ring-2 ring-primary shadow-lg scale-105',
-            plan.parentPlanId && 'border-l-4 border-l-primary/50',
+            plan.parentPlanId && cardDensity !== 'comprehensive' && 'border-l-4 border-l-primary/50',
             isLongPressing && 'ring-2 ring-primary/50 scale-[1.02]',
           )}
           style={{
             left: `${currentOffset}px`,
             width: `${currentWidth}px`,
-            top: `${stackIndex * 36 + 8}px`,
+            top: `${stackIndex * rowHeight + 8}px`,
+            height: `${cardHeight}px`,
             backgroundColor: plan.color,
             color: 'hsl(265 4% 12.9%)',
             minWidth: '60px',
@@ -304,7 +440,10 @@ export const PlanCard = ({
         >
           {/* Long press indicator */}
           {isLongPressing && (
-            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+            <div className={cn(
+              "absolute inset-0 overflow-hidden pointer-events-none",
+              cardDensity === 'comprehensive' ? 'rounded-lg' : 'rounded-full'
+            )}>
               <div 
                 className="absolute inset-0 bg-primary/20 origin-left animate-[grow-width_0.4s_linear]"
                 style={{
@@ -332,31 +471,24 @@ export const PlanCard = ({
 
           {/* Resize handle - Start */}
           <div
-            className="resize-handle-start absolute left-0 top-0 h-full w-3 cursor-ew-resize rounded-l-full hover:bg-foreground/10"
+            className={cn(
+              "resize-handle-start absolute left-0 top-0 h-full w-3 cursor-ew-resize hover:bg-foreground/10",
+              cardDensity === 'comprehensive' ? 'rounded-l-lg' : 'rounded-l-full'
+            )}
             onMouseDown={handleResizeStartBegin}
           />
 
-          {/* Sub-plan indicator */}
-          {plan.parentPlanId && (
-            <GitBranch className="h-3 w-3 text-foreground/60 shrink-0" />
-          )}
-
-          <span className="truncate font-semibold pointer-events-none">{plan.title}</span>
-          
-          {/* Child indicator */}
-          {hasChildren && (
-            <span className="text-xs bg-foreground/20 rounded-full px-1.5 py-0.5 shrink-0">
-              {getChildPlans(plan.id).length}
-            </span>
-          )}
-          
-          <span className="ml-auto shrink-0 text-xs opacity-75 pointer-events-none">
-            {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
-          </span>
+          {/* Card content based on density */}
+          {cardDensity === 'condensed' && renderCondensedCard()}
+          {cardDensity === 'standard' && renderStandardCard()}
+          {cardDensity === 'comprehensive' && renderComprehensiveCard()}
 
           {/* Resize handle - End */}
           <div
-            className="resize-handle-end absolute right-0 top-0 h-full w-3 cursor-ew-resize rounded-r-full hover:bg-foreground/10"
+            className={cn(
+              "resize-handle-end absolute right-0 top-0 h-full w-3 cursor-ew-resize hover:bg-foreground/10",
+              cardDensity === 'comprehensive' ? 'rounded-r-lg' : 'rounded-r-full'
+            )}
             onMouseDown={handleResizeEndBegin}
           />
         </div>

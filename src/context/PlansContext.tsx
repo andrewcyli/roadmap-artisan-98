@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
-import { Plan, ZoomLevel } from '@/types/plan';
+import { Plan, ZoomLevel, CardDensity } from '@/types/plan';
 import { mockPlans } from '@/data/mockPlans';
 import { addDays, differenceInDays } from 'date-fns';
 
@@ -16,6 +16,8 @@ interface PlansContextType {
   setFilterText: React.Dispatch<React.SetStateAction<string>>;
   snapMode: SnapMode;
   setSnapMode: React.Dispatch<React.SetStateAction<SnapMode>>;
+  cardDensity: CardDensity;
+  setCardDensity: React.Dispatch<React.SetStateAction<CardDensity>>;
   updatePlan: (updatedPlan: Plan) => void;
   addPlan: (plan: Plan) => void;
   deletePlan: (id: string) => void;
@@ -35,6 +37,7 @@ export const PlansProvider = ({ children }: { children: ReactNode }) => {
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('year');
   const [filterText, setFilterText] = useState('');
   const [snapMode, setSnapMode] = useState<SnapMode>('week');
+  const [cardDensity, setCardDensity] = useState<CardDensity>('standard');
 
   const updatePlan = useCallback((updatedPlan: Plan) => {
     setPlans((prev) => {
@@ -122,6 +125,8 @@ export const PlansProvider = ({ children }: { children: ReactNode }) => {
         setFilterText,
         snapMode,
         setSnapMode,
+        cardDensity,
+        setCardDensity,
         updatePlan,
         addPlan,
         deletePlan,

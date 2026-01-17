@@ -1,6 +1,6 @@
 import { usePlans, SnapMode } from '@/context/PlansContext';
 import { useLabels } from '@/context/LabelsContext';
-import { ZoomLevel } from '@/types/plan';
+import { ZoomLevel, CardDensity } from '@/types/plan';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,7 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Calendar, Layers, Plus, Magnet, Settings } from 'lucide-react';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Search, Calendar, Layers, Plus, Magnet, Settings, AlignJustify, LayoutList, LayoutDashboard } from 'lucide-react';
 
 interface TimelineHeaderProps {
   onAddPlan: () => void;
@@ -18,8 +23,14 @@ interface TimelineHeaderProps {
 }
 
 export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProps) => {
-  const { zoomLevel, setZoomLevel, filterText, setFilterText, snapMode, setSnapMode } = usePlans();
+  const { zoomLevel, setZoomLevel, filterText, setFilterText, snapMode, setSnapMode, cardDensity, setCardDensity } = usePlans();
   const { labelTypes, activeSwimlaneTypeId, setActiveSwimlaneTypeId } = useLabels();
+
+  const densityOptions: { value: CardDensity; icon: typeof AlignJustify; label: string }[] = [
+    { value: 'condensed', icon: AlignJustify, label: 'Condensed - Title & dates only' },
+    { value: 'standard', icon: LayoutList, label: 'Standard - Title, dates & labels' },
+    { value: 'comprehensive', icon: LayoutDashboard, label: 'Comprehensive - All details' },
+  ];
 
   const activeLabelType = labelTypes.find(lt => lt.id === activeSwimlaneTypeId);
 
@@ -75,6 +86,27 @@ export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProp
             <Settings className="h-4 w-4" />
           </Button>
         )}
+
+        {/* Card Density Toggle */}
+        <div className="flex rounded-lg border border-border bg-muted p-1">
+          {densityOptions.map(({ value, icon: Icon, label }) => (
+            <Tooltip key={value}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={cardDensity === value ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setCardDensity(value)}
+                  className={`px-2 ${cardDensity === value ? 'bg-background shadow-sm' : ''}`}
+                >
+                  <Icon className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{label}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
 
         {/* Snap Mode */}
         <div className="flex items-center gap-2">

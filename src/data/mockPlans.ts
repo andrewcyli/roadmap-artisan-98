@@ -4,6 +4,7 @@ export const mockPlans: Plan[] = [
   {
     id: '1',
     title: 'Q1 Product Launch',
+    description: 'Major product launch across all channels. Focus on new feature announcements and customer testimonials.',
     startDate: new Date(2025, 0, 15),
     endDate: new Date(2025, 2, 15),
     budget: 25000,
@@ -16,6 +17,7 @@ export const mockPlans: Plan[] = [
   {
     id: '2',
     title: 'Spring Email Campaign',
+    description: 'Seasonal email nurture sequence targeting existing customers with spring promotions and new product highlights.',
     startDate: new Date(2025, 2, 1),
     endDate: new Date(2025, 4, 30),
     budget: 12000,
@@ -28,6 +30,7 @@ export const mockPlans: Plan[] = [
   {
     id: '3',
     title: 'Annual Conference',
+    description: 'Our flagship industry conference bringing together thought leaders, customers, and partners for networking and knowledge sharing.',
     startDate: new Date(2025, 5, 10),
     endDate: new Date(2025, 5, 15),
     budget: 75000,
@@ -40,6 +43,7 @@ export const mockPlans: Plan[] = [
   {
     id: '4',
     title: 'Summer Ads Campaign',
+    description: 'Paid advertising push across Google, Meta, and LinkedIn to drive awareness and conversions during summer season.',
     startDate: new Date(2025, 5, 1),
     endDate: new Date(2025, 7, 31),
     budget: 50000,
@@ -52,6 +56,7 @@ export const mockPlans: Plan[] = [
   {
     id: '5',
     title: 'Holiday Sale',
+    description: 'End-of-year promotional campaign featuring exclusive discounts, bundles, and limited-time offers.',
     startDate: new Date(2025, 10, 15),
     endDate: new Date(2025, 11, 31),
     budget: 35000,
@@ -64,6 +69,7 @@ export const mockPlans: Plan[] = [
   {
     id: '6',
     title: 'Content Marketing Push',
+    description: 'SEO-focused content strategy including blog posts, whitepapers, and case studies to improve organic visibility.',
     startDate: new Date(2025, 3, 1),
     endDate: new Date(2025, 6, 30),
     budget: 18000,
@@ -76,6 +82,7 @@ export const mockPlans: Plan[] = [
   {
     id: '7',
     title: 'Black Friday Blitz',
+    description: 'Intensive 10-day advertising campaign with aggressive bidding and creative rotation for maximum Black Friday impact.',
     startDate: new Date(2025, 10, 20),
     endDate: new Date(2025, 10, 30),
     budget: 45000,
@@ -89,7 +96,7 @@ export const mockPlans: Plan[] = [
   {
     id: '8',
     title: 'Pre-Launch Teasers',
-    description: 'Social teasers before Q1 launch',
+    description: 'Social media teaser campaign building anticipation for the main product launch with countdown posts and sneak peeks.',
     startDate: new Date(2025, 0, 15),
     endDate: new Date(2025, 0, 31),
     budget: 5000,
@@ -104,7 +111,7 @@ export const mockPlans: Plan[] = [
   {
     id: '9',
     title: 'Launch Day Push',
-    description: 'Main launch day activities',
+    description: 'Coordinated launch day activities across all social channels with live streaming and real-time engagement.',
     startDate: new Date(2025, 1, 1),
     endDate: new Date(2025, 1, 7),
     budget: 10000,

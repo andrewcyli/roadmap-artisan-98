@@ -5,6 +5,7 @@ import { useLabels } from '@/context/LabelsContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label as UILabel } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -54,6 +55,7 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
       setFormData({
         id: crypto.randomUUID(),
         title: '',
+        description: '',
         startDate: defaults?.startDate || new Date(),
         endDate: defaults?.endDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         budget: 0,
@@ -147,7 +149,18 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
             />
           </div>
 
-          {/* Parent Plan Selection */}
+          {/* Description */}
+          <div className="space-y-2">
+            <UILabel htmlFor="description">Description</UILabel>
+            <Textarea
+              id="description"
+              value={formData.description || ''}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Add a description for this plan..."
+              rows={3}
+              className="resize-none"
+            />
+          </div>
           <div className="space-y-2">
             <UILabel className="flex items-center gap-2">
               <Link2 className="h-4 w-4" />
