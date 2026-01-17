@@ -1,4 +1,4 @@
-import { Plan } from '@/types/plan';
+import { Plan, CardDensity } from '@/types/plan';
 import { PlanCard } from './PlanCard';
 import { PlanConnectionLines } from './PlanConnectionLines';
 import { usePlans } from '@/context/PlansContext';
@@ -43,9 +43,20 @@ export const Swimlane = ({
   onDeletePlan,
   onDuplicatePlan,
 }: SwimlaneProps) => {
-  const { zoomLevel } = usePlans();
+  const { zoomLevel, cardDensity } = usePlans();
   const yearStart = startOfYear(new Date(2025, 0, 1));
   const daysInYear = 365;
+
+  // Get row height based on card density
+  const getRowHeight = () => {
+    switch (cardDensity) {
+      case 'condensed': return 32;
+      case 'standard': return 40;
+      case 'comprehensive': return 72;
+    }
+  };
+
+  const rowHeight = getRowHeight();
 
   // Calculate positions for each plan with collision detection
   const getStackedPlans = () => {
@@ -81,7 +92,7 @@ export const Swimlane = ({
   };
 
   const { planStackMap, stackCount } = getStackedPlans();
-  const minHeight = Math.max(60, stackCount * 36 + 24);
+  const minHeight = Math.max(60, stackCount * rowHeight + 24);
 
   const handleLaneClick = (e: React.MouseEvent) => {
     // Only trigger if clicking directly on the lane, not on a card
@@ -155,6 +166,7 @@ export const Swimlane = ({
                 startOffset={offset}
                 width={width}
                 stackIndex={stackIndex}
+                cardDensity={cardDensity}
                 onDoubleClick={() => onPlanDoubleClick(plan)}
                 onDragStart={onDragStart}
                 isDraggingExternal={draggingPlan?.id === plan.id}

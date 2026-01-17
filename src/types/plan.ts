@@ -1,4 +1,5 @@
 export type ZoomLevel = 'year' | 'quarter' | 'month';
+export type CardDensity = 'condensed' | 'standard' | 'comprehensive';
 
 // Label Types - user can create custom label categories
 export interface LabelType {
