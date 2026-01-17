@@ -75,6 +75,7 @@ const TimelineApp = () => {
   );
 };
 
+// Main Index component with providers
 const Index = () => {
   return (
     <LabelsProvider>
