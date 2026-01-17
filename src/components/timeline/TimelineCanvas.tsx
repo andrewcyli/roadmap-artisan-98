@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePlans } from '@/context/PlansContext';
 import { useLabels } from '@/context/LabelsContext';
-import { Plan, Label } from '@/types/plan';
+import { Plan } from '@/types/plan';
 import { TimelineGrid } from './TimelineGrid';
 import { Swimlane } from './Swimlane';
 import { ResizeIndicatorLine } from './ResizeIndicatorLine';
-import { NestPlanDialog } from './NestPlanDialog';
 import { startOfYear, addDays, differenceInDays, format } from 'date-fns';
 import { PLAN_COLORS } from '@/types/plan';
 
@@ -16,7 +15,7 @@ interface TimelineCanvasProps {
 
 export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanvasProps) => {
   const { plans, filterText, updatePlan, addPlan, deletePlan } = usePlans();
-  const { activeSwimlaneTypeId, getLabelsByType, getLabelName } = useLabels();
+  const { activeSwimlaneTypeId, getLabelsByType } = useLabels();
   const [, setForceRender] = useState(0);
   const [draggingPlan, setDraggingPlan] = useState<Plan | null>(null);
   const [dragTargetLabelId, setDragTargetLabelId] = useState<string | null>(null);
@@ -25,9 +24,6 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
   const [isDragging, setIsDragging] = useState(false);
   const [dragPlanWidth, setDragPlanWidth] = useState(0);
   const [previewDates, setPreviewDates] = useState<{ start: Date; end: Date } | null>(null);
-  const [dropTargetPlan, setDropTargetPlan] = useState<Plan | null>(null);
-  const [nestDialogOpen, setNestDialogOpen] = useState(false);
-  const [pendingNest, setPendingNest] = useState<{ child: Plan; parent: Plan } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -132,43 +128,10 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       } else {
         setDragTargetLabelId(null);
       }
-
-      // Check if hovering over another plan card (for nesting)
-      const planCard = elements.find((el) => el.hasAttribute('data-plan-id'));
-      if (planCard) {
-        const targetPlanId = planCard.getAttribute('data-plan-id');
-        if (targetPlanId && targetPlanId !== draggingPlan.id) {
-          const targetPlan = plans.find(p => p.id === targetPlanId);
-          // Don't allow nesting if target is already a child of dragging plan
-          // or if dragging plan is already a child of target
-          if (targetPlan && 
-              targetPlan.parentPlanId !== draggingPlan.id && 
-              draggingPlan.parentPlanId !== targetPlan.id) {
-            setDropTargetPlan(targetPlan);
-          } else {
-            setDropTargetPlan(null);
-          }
-        }
-      } else {
-        setDropTargetPlan(null);
-      }
     };
 
     const handleEnd = (clientX: number, clientY: number) => {
       if (draggingPlan && isDragging) {
-        // Check if dropped on another plan for nesting
-        if (dropTargetPlan) {
-          setPendingNest({ child: draggingPlan, parent: dropTargetPlan });
-          setNestDialogOpen(true);
-          // Reset drag state but keep the dialog open
-          setDraggingPlan(null);
-          setDragTargetLabelId(null);
-          setIsDragging(false);
-          setPreviewDates(null);
-          setDropTargetPlan(null);
-          return;
-        }
-
         const deltaX = clientX - dragStartPos.x;
         
         // Calculate date change
@@ -207,7 +170,6 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       setDragTargetLabelId(null);
       setIsDragging(false);
       setPreviewDates(null);
-      setDropTargetPlan(null);
     };
 
     const handleMouseMove = (e: MouseEvent) => handleMove(e.clientX, e.clientY);
@@ -234,27 +196,7 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isDragging, draggingPlan, dragStartPos, dragTargetLabelId, updatePlan, activeSwimlaneTypeId, dropTargetPlan, plans]);
-
-  const handleNestConfirm = (useRelativeDates: boolean) => {
-    if (!pendingNest) return;
-    
-    const { child, parent } = pendingNest;
-    const relativeStartOffset = differenceInDays(child.startDate, parent.startDate);
-    const relativeEndOffset = differenceInDays(child.endDate, parent.startDate);
-    
-    const updatedChild: Plan = {
-      ...child,
-      parentPlanId: parent.id,
-      useRelativeDates,
-      relativeStartOffset: useRelativeDates ? relativeStartOffset : undefined,
-      relativeEndOffset: useRelativeDates ? relativeEndOffset : undefined,
-    };
-    
-    updatePlan(updatedChild);
-    setPendingNest(null);
-    setNestDialogOpen(false);
-  };
+  }, [isDragging, draggingPlan, dragStartPos, dragTargetLabelId, updatePlan, activeSwimlaneTypeId]);
 
   const handleEmptyClick = (labelId: string | undefined, clickX: number) => {
     if (!labelId || labelId === '__unassigned__') return;
@@ -286,36 +228,6 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
     setDragTargetLabelId(null);
   };
 
-  // Context menu actions
-  const handleCreateSubPlan = (parentPlan: Plan) => {
-    const newPlan: Plan = {
-      id: `plan-${Date.now()}`,
-      title: `Sub-plan of ${parentPlan.title}`,
-      description: '',
-      startDate: parentPlan.startDate,
-      endDate: addDays(parentPlan.startDate, 14),
-      budget: 0,
-      color: PLAN_COLORS[Math.floor(Math.random() * PLAN_COLORS.length)].value,
-      labels: { ...parentPlan.labels },
-      tags: [],
-      parentPlanId: parentPlan.id,
-      useRelativeDates: true,
-      relativeStartOffset: 0,
-      relativeEndOffset: 14,
-    };
-    addPlan(newPlan);
-  };
-
-  const handleRemoveFromParent = (plan: Plan) => {
-    updatePlan({
-      ...plan,
-      parentPlanId: null,
-      useRelativeDates: false,
-      relativeStartOffset: undefined,
-      relativeEndOffset: undefined,
-    });
-  };
-
   const handleDeletePlan = (plan: Plan) => {
     deletePlan(plan.id);
   };
@@ -327,8 +239,6 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
       title: `${plan.title} (Copy)`,
       startDate: addDays(plan.startDate, 7),
       endDate: addDays(plan.endDate, 7),
-      parentPlanId: null,
-      useRelativeDates: false,
     };
     addPlan(newPlan);
   };
@@ -355,9 +265,6 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
             onDrop={handleDrop}
             isDragTarget={dragTargetLabelId === group.labelId && draggingPlan?.labels[activeSwimlaneTypeId] !== group.labelId}
             draggingPlan={draggingPlan}
-            dropTargetPlanId={dropTargetPlan?.id || null}
-            onCreateSubPlan={handleCreateSubPlan}
-            onRemoveFromParent={handleRemoveFromParent}
             onDeletePlan={handleDeletePlan}
             onDuplicatePlan={handleDuplicatePlan}
           />
@@ -394,25 +301,6 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
           </div>
         </div>
       )}
-
-      {/* Nest indicator when hovering over a target plan */}
-      {isDragging && dropTargetPlan && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-lg animate-in fade-in slide-in-from-bottom-2">
-          Drop to nest as sub-plan of "{dropTargetPlan.title}"
-        </div>
-      )}
-
-      {/* Nest confirmation dialog */}
-      <NestPlanDialog
-        open={nestDialogOpen}
-        onOpenChange={(open) => {
-          setNestDialogOpen(open);
-          if (!open) setPendingNest(null);
-        }}
-        childPlan={pendingNest?.child || null}
-        parentPlan={pendingNest?.parent || null}
-        onConfirm={handleNestConfirm}
-      />
     </div>
   );
 };

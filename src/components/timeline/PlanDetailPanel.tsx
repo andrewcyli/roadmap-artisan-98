@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plan, PLAN_COLORS, LabelType, Label } from '@/types/plan';
+import { Plan, PLAN_COLORS } from '@/types/plan';
 import { usePlans } from '@/context/PlansContext';
 import { useLabels } from '@/context/LabelsContext';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label as UILabel } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -19,8 +18,8 @@ import {
 } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, differenceInDays, addDays } from 'date-fns';
-import { CalendarIcon, DollarSign, Trash2, X, Plus, Link2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { CalendarIcon, DollarSign, Trash2, X, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -33,16 +32,11 @@ interface PlanDetailPanelProps {
 }
 
 export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults }: PlanDetailPanelProps) => {
-  const { updatePlan, addPlan, deletePlan, plans } = usePlans();
-  const { labelTypes, getLabelsByType, activeSwimlaneTypeId } = useLabels();
+  const { updatePlan, addPlan, deletePlan } = usePlans();
+  const { labelTypes, getLabelsByType } = useLabels();
   const [formData, setFormData] = useState<Plan | null>(null);
   const isMobile = useIsMobile();
   const [newTag, setNewTag] = useState('');
-
-  // Get potential parent plans (exclude self and children)
-  const availableParentPlans = plans.filter(p => 
-    p.id !== formData?.id && p.parentPlanId !== formData?.id
-  );
 
   useEffect(() => {
     if (plan) {
@@ -65,8 +59,6 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
         labels: defaultLabels,
         tags: [],
         color: defaults?.color || PLAN_COLORS[0].value,
-        parentPlanId: null,
-        useRelativeDates: false,
       });
     }
   }, [plan, isNew, defaults]);
@@ -74,20 +66,10 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
   const handleSave = () => {
     if (!formData) return;
     
-    // If using relative dates and has parent, calculate relative offsets
-    let planToSave = { ...formData };
-    if (formData.useRelativeDates && formData.parentPlanId) {
-      const parentPlan = plans.find(p => p.id === formData.parentPlanId);
-      if (parentPlan) {
-        planToSave.relativeStartOffset = differenceInDays(formData.startDate, parentPlan.startDate);
-        planToSave.relativeEndOffset = differenceInDays(formData.endDate, parentPlan.startDate);
-      }
-    }
-    
     if (isNew) {
-      addPlan(planToSave);
+      addPlan(formData);
     } else {
-      updatePlan(planToSave);
+      updatePlan(formData);
     }
     onClose();
   };
@@ -122,15 +104,6 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
     setFormData({ ...formData, tags: formData.tags.filter((t) => t !== tag) });
   };
 
-  const handleParentChange = (parentId: string | null) => {
-    if (!formData) return;
-    setFormData({ 
-      ...formData, 
-      parentPlanId: parentId,
-      useRelativeDates: parentId ? formData.useRelativeDates : false,
-    });
-  };
-
   if (!formData) return null;
 
   // Shared form content for both Sheet and Drawer
@@ -158,43 +131,6 @@ export const PlanDetailPanel = ({ plan, isOpen, onClose, isNew = false, defaults
           rows={3}
           className="resize-none"
         />
-      </div>
-      <div className="space-y-2">
-        <UILabel className="flex items-center gap-2">
-          <Link2 className="h-4 w-4" />
-          Parent Plan (Optional)
-        </UILabel>
-        <Select
-          value={formData!.parentPlanId || '__none__'}
-          onValueChange={(v) => handleParentChange(v === '__none__' ? null : v)}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="No parent (standalone)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">No parent (standalone)</SelectItem>
-            {availableParentPlans.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        
-        {formData!.parentPlanId && (
-          <div className="flex items-center gap-2 mt-2 p-2 rounded-md bg-muted">
-            <Switch
-              id="relative-dates"
-              checked={formData!.useRelativeDates}
-              onCheckedChange={(checked) => 
-                setFormData({ ...formData!, useRelativeDates: checked })
-              }
-            />
-            <UILabel htmlFor="relative-dates" className="text-sm cursor-pointer">
-              Use relative dates (move with parent)
-            </UILabel>
-          </div>
-        )}
       </div>
 
       {/* Date Range */}

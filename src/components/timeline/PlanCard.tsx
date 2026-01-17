@@ -5,7 +5,7 @@ import { useLabels } from '@/context/LabelsContext';
 import { useResizeIndicator } from '@/context/ResizeIndicatorContext';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Plus, Unlink, Pencil, Trash2, Copy, ChevronRight, LayoutList, List, Rows3 } from 'lucide-react';
+import { Pencil, Trash2, Copy, ChevronRight, LayoutList, List, Rows3 } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -28,9 +28,6 @@ interface PlanCardProps {
   onDoubleClick: () => void;
   onDragStart: (plan: Plan, e: React.MouseEvent) => void;
   isDraggingExternal: boolean;
-  isDropTarget?: boolean;
-  onCreateSubPlan?: (parentPlan: Plan) => void;
-  onRemoveFromParent?: (plan: Plan) => void;
   onDelete?: (plan: Plan) => void;
   onDuplicate?: (plan: Plan) => void;
 }
@@ -44,13 +41,10 @@ export const PlanCard = ({
   onDoubleClick,
   onDragStart,
   isDraggingExternal,
-  isDropTarget = false,
-  onCreateSubPlan,
-  onRemoveFromParent,
   onDelete,
   onDuplicate,
 }: PlanCardProps) => {
-  const { updatePlan, snapMode, getChildPlans, selectedPlan } = usePlans();
+  const { updatePlan, snapMode, selectedPlan } = usePlans();
   const { labels } = useLabels();
   const { setIndicator, clearIndicator } = useResizeIndicator();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -298,8 +292,6 @@ export const PlanCard = ({
   }, [isResizingStart, isResizingEnd, dragStartX, originalOffset, originalWidth, currentOffset, currentWidth, plan, updatePlan]);
 
   const isResizing = isResizingStart || isResizingEnd;
-  const hasChildren = getChildPlans(plan.id).length > 0;
-  const childCount = getChildPlans(plan.id).length;
   const isSelected = selectedPlan?.id === plan.id;
 
   const handleMenuAction = (action: () => void) => {
@@ -371,7 +363,6 @@ export const PlanCard = ({
         isResizing && "shadow-lg ring-2 ring-primary/30",
         isSelected && "ring-2 ring-primary ring-offset-1",
         isLongPressing && "ring-2 ring-primary/50 scale-[1.02]",
-        isDropTarget && "ring-2 ring-primary shadow-lg scale-105"
       )}
       style={{
         backgroundColor: plan.color,
@@ -466,9 +457,6 @@ export const PlanCard = ({
                 {label!.name}
               </span>
             ))}
-            {hasChildren && (
-              <span className="text-[10px] text-muted-foreground">↳{childCount}</span>
-            )}
             {plan.budget > 0 && (
               <span className="text-[10px] text-muted-foreground font-medium">
                 {formatBudget(plan.budget)}
@@ -495,7 +483,7 @@ export const PlanCard = ({
 
     return (
       <div className="mt-1 pl-2 pointer-events-none">
-        {/* Standard: Labels + Budget + Children */}
+        {/* Standard: Labels + Budget */}
         {effectiveDensity === 'standard' && (
           <div className="flex items-center gap-1.5">
             {planLabels.slice(0, 3).map((label) => (
@@ -507,9 +495,6 @@ export const PlanCard = ({
               </span>
             ))}
             <div className="flex items-center gap-2 ml-auto pr-2">
-              {hasChildren && (
-                <span className="text-[10px] text-muted-foreground">↳ {childCount}</span>
-              )}
               {plan.budget > 0 && (
                 <span className="text-[10px] text-muted-foreground font-medium">
                   {formatBudget(plan.budget)}
@@ -545,9 +530,6 @@ export const PlanCard = ({
                 </span>
               ))}
               <div className="flex items-center gap-2 ml-auto pr-2">
-                {hasChildren && (
-                  <span className="text-[10px] text-muted-foreground">↳ {childCount}</span>
-                )}
                 {plan.budget > 0 && (
                   <span className="text-[10px] text-muted-foreground font-medium">
                     {formatBudget(plan.budget)}
@@ -672,24 +654,6 @@ export const PlanCard = ({
         
         <button
           className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
-          onClick={() => handleMenuAction(() => onCreateSubPlan?.(plan))}
-        >
-          <Plus className="h-4 w-4" />
-          Create Sub-plan
-        </button>
-        
-        {plan.parentPlanId && (
-          <button
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
-            onClick={() => handleMenuAction(() => onRemoveFromParent?.(plan))}
-          >
-            <Unlink className="h-4 w-4" />
-            Remove from Parent
-          </button>
-        )}
-        
-        <button
-          className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
           onClick={() => handleMenuAction(() => onDuplicate?.(plan))}
         >
           <Copy className="h-4 w-4" />
@@ -703,7 +667,7 @@ export const PlanCard = ({
           onClick={() => handleMenuAction(() => onDelete?.(plan))}
         >
           <Trash2 className="h-4 w-4" />
-          Delete{hasChildren ? ' (with sub-plans)' : ''}
+          Delete
         </button>
       </PopoverContent>
     </Popover>
