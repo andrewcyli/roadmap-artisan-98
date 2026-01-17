@@ -15,7 +15,7 @@ interface TimelineCanvasProps {
 }
 
 export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanvasProps) => {
-  const { plans, filterText, updatePlan } = usePlans();
+  const { plans, filterText, updatePlan, addPlan, deletePlan } = usePlans();
   const { activeSwimlaneTypeId, getLabelsByType, getLabelName } = useLabels();
   const [, setForceRender] = useState(0);
   const [draggingPlan, setDraggingPlan] = useState<Plan | null>(null);
@@ -265,6 +265,53 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
     setDragTargetLabelId(null);
   };
 
+  // Context menu actions
+  const handleCreateSubPlan = (parentPlan: Plan) => {
+    const newPlan: Plan = {
+      id: `plan-${Date.now()}`,
+      title: `Sub-plan of ${parentPlan.title}`,
+      description: '',
+      startDate: parentPlan.startDate,
+      endDate: addDays(parentPlan.startDate, 14),
+      budget: 0,
+      color: PLAN_COLORS[Math.floor(Math.random() * PLAN_COLORS.length)].value,
+      labels: { ...parentPlan.labels },
+      tags: [],
+      parentPlanId: parentPlan.id,
+      useRelativeDates: true,
+      relativeStartOffset: 0,
+      relativeEndOffset: 14,
+    };
+    addPlan(newPlan);
+  };
+
+  const handleRemoveFromParent = (plan: Plan) => {
+    updatePlan({
+      ...plan,
+      parentPlanId: null,
+      useRelativeDates: false,
+      relativeStartOffset: undefined,
+      relativeEndOffset: undefined,
+    });
+  };
+
+  const handleDeletePlan = (plan: Plan) => {
+    deletePlan(plan.id);
+  };
+
+  const handleDuplicatePlan = (plan: Plan) => {
+    const newPlan: Plan = {
+      ...plan,
+      id: `plan-${Date.now()}`,
+      title: `${plan.title} (Copy)`,
+      startDate: addDays(plan.startDate, 7),
+      endDate: addDays(plan.endDate, 7),
+      parentPlanId: null,
+      useRelativeDates: false,
+    };
+    addPlan(newPlan);
+  };
+
   return (
     <div ref={containerRef} className="relative flex flex-1 flex-col overflow-hidden bg-background">
       {/* Resize indicator that spans the entire timeline including header */}
@@ -288,6 +335,10 @@ export const TimelineCanvas = ({ onPlanDoubleClick, onCreatePlan }: TimelineCanv
             isDragTarget={dragTargetLabelId === group.labelId && draggingPlan?.labels[activeSwimlaneTypeId] !== group.labelId}
             draggingPlan={draggingPlan}
             dropTargetPlanId={dropTargetPlan?.id || null}
+            onCreateSubPlan={handleCreateSubPlan}
+            onRemoveFromParent={handleRemoveFromParent}
+            onDeletePlan={handleDeletePlan}
+            onDuplicatePlan={handleDuplicatePlan}
           />
         ))}
       </div>

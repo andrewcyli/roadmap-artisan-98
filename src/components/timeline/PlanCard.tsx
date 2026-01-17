@@ -4,7 +4,14 @@ import { usePlans } from '@/context/PlansContext';
 import { useResizeIndicator } from '@/context/ResizeIndicatorContext';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { GitBranch } from 'lucide-react';
+import { GitBranch, Plus, Unlink, Pencil, Trash2, Copy } from 'lucide-react';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuLabel,
+} from '@/components/ui/context-menu';
 
 interface PlanCardProps {
   plan: Plan;
@@ -15,6 +22,10 @@ interface PlanCardProps {
   onDragStart: (plan: Plan, e: React.MouseEvent) => void;
   isDraggingExternal: boolean;
   isDropTarget?: boolean;
+  onCreateSubPlan?: (parentPlan: Plan) => void;
+  onRemoveFromParent?: (plan: Plan) => void;
+  onDelete?: (plan: Plan) => void;
+  onDuplicate?: (plan: Plan) => void;
 }
 
 export const PlanCard = ({ 
@@ -26,6 +37,10 @@ export const PlanCard = ({
   onDragStart,
   isDraggingExternal,
   isDropTarget = false,
+  onCreateSubPlan,
+  onRemoveFromParent,
+  onDelete,
+  onDuplicate,
 }: PlanCardProps) => {
   const { updatePlan, snapMode, getChildPlans } = usePlans();
   const { setIndicator, clearIndicator } = useResizeIndicator();
@@ -213,75 +228,132 @@ export const PlanCard = ({
   const hasChildren = getChildPlans(plan.id).length > 0;
 
   return (
-    <div
-      ref={cardRef}
-      data-plan-id={plan.id}
-      className={cn(
-        'absolute flex cursor-grab items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium shadow-sm transition-all select-none',
-        isResizing ? 'cursor-col-resize shadow-lg ring-2 ring-primary/30' : 'hover:shadow-md',
-        isDraggingExternal && 'opacity-50',
-        isDropTarget && 'ring-2 ring-primary shadow-lg scale-105',
-        plan.parentPlanId && 'border-l-4 border-l-primary/50',
-      )}
-      style={{
-        left: `${currentOffset}px`,
-        width: `${currentWidth}px`,
-        top: `${stackIndex * 36 + 8}px`,
-        backgroundColor: plan.color,
-        color: 'hsl(265 4% 12.9%)',
-        minWidth: '60px',
-      }}
-      onMouseDown={handleMouseDown}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        onDoubleClick();
-      }}
-    >
-      {/* Start date tooltip - positioned below to avoid header overlap */}
-      {isResizingStart && previewStartDate && (
-        <div className="absolute -left-1 top-full mt-1 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
-          <div className="absolute left-2 bottom-full h-0 w-0 border-x-4 border-b-4 border-x-transparent border-b-foreground" />
-          {format(previewStartDate, 'MMM d, yyyy')}
-        </div>
-      )}
-
-      {/* End date tooltip - positioned below to avoid header overlap */}
-      {isResizingEnd && previewEndDate && (
-        <div className="absolute -right-1 top-full mt-1 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
-          <div className="absolute right-2 bottom-full h-0 w-0 border-x-4 border-b-4 border-x-transparent border-b-foreground" />
-          {format(previewEndDate, 'MMM d, yyyy')}
-        </div>
-      )}
-
-      {/* Resize handle - Start */}
-      <div
-        className="resize-handle-start absolute left-0 top-0 h-full w-3 cursor-ew-resize rounded-l-full hover:bg-foreground/10"
-        onMouseDown={handleResizeStartBegin}
-      />
-
-      {/* Sub-plan indicator */}
-      {plan.parentPlanId && (
-        <GitBranch className="h-3 w-3 text-foreground/60 shrink-0" />
-      )}
-
-      <span className="truncate font-semibold pointer-events-none">{plan.title}</span>
+    <ContextMenu>
+      <ContextMenuContent className="w-48">
+        <ContextMenuLabel className="flex items-center gap-2">
+          <div 
+            className="h-2 w-2 rounded-full" 
+            style={{ backgroundColor: plan.color }}
+          />
+          <span className="truncate">{plan.title}</span>
+        </ContextMenuLabel>
+        <ContextMenuSeparator />
+        
+        <ContextMenuItem 
+          className="gap-2 cursor-pointer"
+          onClick={onDoubleClick}
+        >
+          <Pencil className="h-4 w-4" />
+          Edit Plan
+        </ContextMenuItem>
+        
+        <ContextMenuItem 
+          className="gap-2 cursor-pointer"
+          onClick={() => onCreateSubPlan?.(plan)}
+        >
+          <Plus className="h-4 w-4" />
+          Create Sub-plan
+        </ContextMenuItem>
+        
+        {plan.parentPlanId && (
+          <ContextMenuItem 
+            className="gap-2 cursor-pointer"
+            onClick={() => onRemoveFromParent?.(plan)}
+          >
+            <Unlink className="h-4 w-4" />
+            Remove from Parent
+          </ContextMenuItem>
+        )}
+        
+        <ContextMenuItem 
+          className="gap-2 cursor-pointer"
+          onClick={() => onDuplicate?.(plan)}
+        >
+          <Copy className="h-4 w-4" />
+          Duplicate
+        </ContextMenuItem>
+        
+        <ContextMenuSeparator />
+        
+        <ContextMenuItem 
+          className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+          onClick={() => onDelete?.(plan)}
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete{hasChildren ? ' (with sub-plans)' : ''}
+        </ContextMenuItem>
+      </ContextMenuContent>
       
-      {/* Child indicator */}
-      {hasChildren && (
-        <span className="text-xs bg-foreground/20 rounded-full px-1.5 py-0.5 shrink-0">
-          {getChildPlans(plan.id).length}
+      <div
+        ref={cardRef}
+        data-plan-id={plan.id}
+        className={cn(
+          'absolute flex cursor-grab items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium shadow-sm transition-all select-none',
+          isResizing ? 'cursor-col-resize shadow-lg ring-2 ring-primary/30' : 'hover:shadow-md',
+          isDraggingExternal && 'opacity-50',
+          isDropTarget && 'ring-2 ring-primary shadow-lg scale-105',
+          plan.parentPlanId && 'border-l-4 border-l-primary/50',
+        )}
+        style={{
+          left: `${currentOffset}px`,
+          width: `${currentWidth}px`,
+          top: `${stackIndex * 36 + 8}px`,
+          backgroundColor: plan.color,
+          color: 'hsl(265 4% 12.9%)',
+          minWidth: '60px',
+        }}
+        onMouseDown={handleMouseDown}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          onDoubleClick();
+        }}
+      >
+        {/* Start date tooltip - positioned below to avoid header overlap */}
+        {isResizingStart && previewStartDate && (
+          <div className="absolute -left-1 top-full mt-1 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+            <div className="absolute left-2 bottom-full h-0 w-0 border-x-4 border-b-4 border-x-transparent border-b-foreground" />
+            {format(previewStartDate, 'MMM d, yyyy')}
+          </div>
+        )}
+
+        {/* End date tooltip - positioned below to avoid header overlap */}
+        {isResizingEnd && previewEndDate && (
+          <div className="absolute -right-1 top-full mt-1 z-50 rounded bg-foreground px-2 py-1 text-xs font-medium text-background shadow-lg whitespace-nowrap">
+            <div className="absolute right-2 bottom-full h-0 w-0 border-x-4 border-b-4 border-x-transparent border-b-foreground" />
+            {format(previewEndDate, 'MMM d, yyyy')}
+          </div>
+        )}
+
+        {/* Resize handle - Start */}
+        <div
+          className="resize-handle-start absolute left-0 top-0 h-full w-3 cursor-ew-resize rounded-l-full hover:bg-foreground/10"
+          onMouseDown={handleResizeStartBegin}
+        />
+
+        {/* Sub-plan indicator */}
+        {plan.parentPlanId && (
+          <GitBranch className="h-3 w-3 text-foreground/60 shrink-0" />
+        )}
+
+        <span className="truncate font-semibold pointer-events-none">{plan.title}</span>
+        
+        {/* Child indicator */}
+        {hasChildren && (
+          <span className="text-xs bg-foreground/20 rounded-full px-1.5 py-0.5 shrink-0">
+            {getChildPlans(plan.id).length}
+          </span>
+        )}
+        
+        <span className="ml-auto shrink-0 text-xs opacity-75 pointer-events-none">
+          {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
         </span>
-      )}
-      
-      <span className="ml-auto shrink-0 text-xs opacity-75 pointer-events-none">
-        {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
-      </span>
 
-      {/* Resize handle - End */}
-      <div
-        className="resize-handle-end absolute right-0 top-0 h-full w-3 cursor-ew-resize rounded-r-full hover:bg-foreground/10"
-        onMouseDown={handleResizeEndBegin}
-      />
-    </div>
+        {/* Resize handle - End */}
+        <div
+          className="resize-handle-end absolute right-0 top-0 h-full w-3 cursor-ew-resize rounded-r-full hover:bg-foreground/10"
+          onMouseDown={handleResizeEndBegin}
+        />
+      </div>
+    </ContextMenu>
   );
 };

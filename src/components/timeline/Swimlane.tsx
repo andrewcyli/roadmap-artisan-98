@@ -19,6 +19,10 @@ interface SwimlaneProps {
   isDragTarget: boolean;
   draggingPlan: Plan | null;
   dropTargetPlanId: string | null;
+  onCreateSubPlan: (parentPlan: Plan) => void;
+  onRemoveFromParent: (plan: Plan) => void;
+  onDeletePlan: (plan: Plan) => void;
+  onDuplicatePlan: (plan: Plan) => void;
 }
 
 export const Swimlane = ({ 
@@ -34,6 +38,10 @@ export const Swimlane = ({
   isDragTarget,
   draggingPlan,
   dropTargetPlanId,
+  onCreateSubPlan,
+  onRemoveFromParent,
+  onDeletePlan,
+  onDuplicatePlan,
 }: SwimlaneProps) => {
   const { zoomLevel } = usePlans();
   const yearStart = startOfYear(new Date(2025, 0, 1));
@@ -151,6 +159,10 @@ export const Swimlane = ({
                 onDragStart={onDragStart}
                 isDraggingExternal={draggingPlan?.id === plan.id}
                 isDropTarget={dropTargetPlanId === plan.id}
+                onCreateSubPlan={onCreateSubPlan}
+                onRemoveFromParent={onRemoveFromParent}
+                onDelete={onDeletePlan}
+                onDuplicate={onDuplicatePlan}
               />
             </div>
           );
