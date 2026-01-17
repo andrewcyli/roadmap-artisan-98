@@ -14,6 +14,7 @@ import {
 
 const LONG_PRESS_DURATION = 400; // ms
 const MIN_CARD_WIDTH_FOR_CONTENT = 100; // Minimum width before content overflows outside
+const DRAG_THRESHOLD = 5; // Minimum pixels moved to consider it a drag
 
 interface PlanCardProps {
   plan: Plan;
@@ -51,6 +52,8 @@ export const PlanCard = ({
   const { setIndicator, clearIndicator } = useResizeIndicator();
   const cardRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const mouseDownPos = useRef<{ x: number; y: number } | null>(null);
+  const hasDragged = useRef(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isLongPressing, setIsLongPressing] = useState(false);
   const [showDensitySubmenu, setShowDensitySubmenu] = useState(false);
@@ -136,6 +139,10 @@ export const PlanCard = ({
       return;
     }
     
+    // Track mouse position for drag detection
+    mouseDownPos.current = { x: e.clientX, y: e.clientY };
+    hasDragged.current = false;
+    
     // Start long press timer
     setIsLongPressing(true);
     longPressTimer.current = setTimeout(() => {
@@ -157,10 +164,17 @@ export const PlanCard = ({
   }, [clearLongPressTimer]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    // If mouse moves significantly, cancel long press and start drag
-    if (isLongPressing && longPressTimer.current) {
-      clearLongPressTimer();
-      onDragStart(plan, e);
+    // Check if mouse moved enough to be considered a drag
+    if (mouseDownPos.current) {
+      const dx = Math.abs(e.clientX - mouseDownPos.current.x);
+      const dy = Math.abs(e.clientY - mouseDownPos.current.y);
+      if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+        hasDragged.current = true;
+        if (isLongPressing && longPressTimer.current) {
+          clearLongPressTimer();
+          onDragStart(plan, e);
+        }
+      }
     }
   }, [isLongPressing, clearLongPressTimer, onDragStart, plan]);
 
@@ -295,17 +309,17 @@ export const PlanCard = ({
   // Determine if card is too narrow for content
   const isNarrow = currentWidth < MIN_CARD_WIDTH_FOR_CONTENT;
 
-  // Calculate card height based on density
+  // Calculate card height based on density - increased for better content display
   const getCardHeight = () => {
     switch (effectiveDensity) {
       case 'condensed': return 28;
-      case 'standard': return 36;
-      case 'comprehensive': return 72;
+      case 'standard': return 52; // Increased from 36 for 2 rows
+      case 'comprehensive': return 100; // Increased from 72 for 4 rows
     }
   };
 
   const cardHeight = getCardHeight();
-  const rowHeight = effectiveDensity === 'comprehensive' ? 76 : (effectiveDensity === 'standard' ? 44 : 36);
+  const rowHeight = effectiveDensity === 'comprehensive' ? 108 : (effectiveDensity === 'standard' ? 60 : 36);
 
   // Format budget for display
   const formatBudget = (amount: number) => {
@@ -394,15 +408,26 @@ export const PlanCard = ({
     }
 
     return (
-      <>
-        {plan.parentPlanId && (
-          <GitBranch className="h-3 w-3 text-foreground/60 shrink-0" />
-        )}
-        <span className="truncate font-semibold pointer-events-none">{plan.title}</span>
+      <div className="flex flex-col gap-0.5 w-full min-w-0 pointer-events-none">
+        {/* Row 1: Title + sub count */}
+        <div className="flex items-center gap-2">
+          {plan.parentPlanId && (
+            <GitBranch className="h-3 w-3 text-foreground/60 shrink-0" />
+          )}
+          <span className="truncate font-semibold text-sm">{plan.title}</span>
+          {hasChildren && (
+            <span className="text-[10px] bg-foreground/20 rounded-full px-1.5 py-0.5 shrink-0">
+              {getChildPlans(plan.id).length}
+            </span>
+          )}
+          <span className="ml-auto shrink-0 text-xs opacity-75">
+            {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
+          </span>
+        </div>
         
-        {/* Show up to 2 label badges */}
-        <div className="flex gap-1 shrink-0">
-          {planLabels.slice(0, 2).map((label) => (
+        {/* Row 2: Labels */}
+        <div className="flex items-center gap-1">
+          {planLabels.slice(0, 3).map((label) => (
             <span
               key={label!.id}
               className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/10 truncate max-w-[60px]"
@@ -410,18 +435,13 @@ export const PlanCard = ({
               {label!.name}
             </span>
           ))}
+          {plan.budget > 0 && (
+            <span className="text-[10px] font-medium bg-foreground/15 px-1.5 py-0.5 rounded ml-auto">
+              {formatBudget(plan.budget)}
+            </span>
+          )}
         </div>
-        
-        {hasChildren && (
-          <span className="text-xs bg-foreground/20 rounded-full px-1.5 py-0.5 shrink-0">
-            {getChildPlans(plan.id).length}
-          </span>
-        )}
-        
-        <span className="ml-auto shrink-0 text-xs opacity-75 pointer-events-none">
-          {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
-        </span>
-      </>
+      </div>
     );
   };
 
@@ -487,7 +507,7 @@ export const PlanCard = ({
     }
 
     return (
-      <div className="flex flex-col gap-1 w-full min-w-0 pointer-events-none">
+      <div className="flex flex-col gap-1 w-full min-w-0 pointer-events-none h-full">
         {/* Row 1: Title + Date + Budget */}
         <div className="flex items-center gap-2">
           {plan.parentPlanId && (
@@ -509,14 +529,14 @@ export const PlanCard = ({
           )}
         </div>
         
-        {/* Row 2: Description preview */}
+        {/* Row 2: Description preview (show 2 lines) */}
         {plan.description && (
-          <p className="text-xs opacity-70 truncate">
+          <p className="text-xs opacity-70 line-clamp-2">
             {plan.description}
           </p>
         )}
         
-        {/* Row 3: Labels + Tags */}
+        {/* Row 3: Labels */}
         <div className="flex items-center gap-1 flex-wrap">
           {planLabels.map((label) => (
             <span
@@ -529,18 +549,24 @@ export const PlanCard = ({
               {label!.name}
             </span>
           ))}
-          {plan.tags.slice(0, 3).map((tag) => (
-            <span
-              key={tag}
-              className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/5 border border-foreground/20 shrink-0"
-            >
-              #{tag}
-            </span>
-          ))}
-          {plan.tags.length > 3 && (
-            <span className="text-[10px] opacity-60">+{plan.tags.length - 3}</span>
-          )}
         </div>
+        
+        {/* Row 4: Tags */}
+        {plan.tags.length > 0 && (
+          <div className="flex items-center gap-1 flex-wrap">
+            {plan.tags.slice(0, 4).map((tag) => (
+              <span
+                key={tag}
+                className="text-[10px] px-1.5 py-0.5 rounded-full bg-foreground/5 border border-foreground/20 shrink-0"
+              >
+                #{tag}
+              </span>
+            ))}
+            {plan.tags.length > 4 && (
+              <span className="text-[10px] opacity-60">+{plan.tags.length - 4}</span>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -589,7 +615,10 @@ export const PlanCard = ({
           onMouseMove={handleMouseMove}
           onDoubleClick={(e) => {
             e.stopPropagation();
-            onDoubleClick();
+            // Only trigger if we haven't dragged and aren't resizing
+            if (!hasDragged.current && !isResizing) {
+              onDoubleClick();
+            }
           }}
         >
           {/* Long press indicator */}
@@ -666,26 +695,33 @@ export const PlanCard = ({
         </button>
         
         {/* Display Size Submenu */}
-        <div className="relative">
-          <button
+        <div 
+          className="relative"
+          onMouseEnter={() => setShowDensitySubmenu(true)}
+          onMouseLeave={() => setShowDensitySubmenu(false)}
+        >
+          <div
             className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
-            onClick={() => setShowDensitySubmenu(!showDensitySubmenu)}
           >
             <LayoutList className="h-4 w-4" />
             Display Size
             <ChevronRight className="h-4 w-4 ml-auto" />
-          </button>
+          </div>
           
           {showDensitySubmenu && (
             <div className="absolute left-full top-0 ml-1 w-44 rounded-md border border-border bg-popover p-1 shadow-md z-50">
               {densityOptions.map((option) => (
                 <button
                   key={option.value ?? 'default'}
+                  type="button"
                   className={cn(
                     "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer",
                     (plan.displayDensity === option.value || (!plan.displayDensity && option.value === null)) && "bg-accent"
                   )}
-                  onClick={() => handleSetDisplayDensity(option.value)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSetDisplayDensity(option.value);
+                  }}
                 >
                   {option.icon}
                   {option.label}

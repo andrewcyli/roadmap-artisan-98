@@ -53,8 +53,8 @@ export const Swimlane = ({
   const getRowHeight = (density: CardDensity) => {
     switch (density) {
       case 'condensed': return 36;
-      case 'standard': return 44;
-      case 'comprehensive': return 76;
+      case 'standard': return 60; // Increased for 2 rows of content
+      case 'comprehensive': return 108; // Increased for 4 rows of content
     }
   };
 
