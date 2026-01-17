@@ -41,6 +41,9 @@ export interface Plan {
   useRelativeDates: boolean;       // When true, dates are offsets from parent
   relativeStartOffset?: number;    // Days from parent start
   relativeEndOffset?: number;      // Days from parent start
+  
+  // Individual display density override (null = use global setting)
+  displayDensity?: CardDensity | null;
 }
 
 // Legacy types for backward compatibility during migration

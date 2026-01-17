@@ -25,6 +25,8 @@ interface SwimlaneProps {
   onDuplicatePlan: (plan: Plan) => void;
 }
 
+const MIN_CARD_WIDTH_FOR_CONTENT = 100;
+
 export const Swimlane = ({ 
   label, 
   labelId,
@@ -47,52 +49,91 @@ export const Swimlane = ({
   const yearStart = startOfYear(new Date(2025, 0, 1));
   const daysInYear = 365;
 
-  // Get row height based on card density
-  const getRowHeight = () => {
-    switch (cardDensity) {
-      case 'condensed': return 32;
-      case 'standard': return 40;
-      case 'comprehensive': return 72;
+  // Get row height based on card density - now accounts for potential individual overrides
+  const getRowHeight = (density: CardDensity) => {
+    switch (density) {
+      case 'condensed': return 36;
+      case 'standard': return 44;
+      case 'comprehensive': return 76;
     }
   };
 
-  const rowHeight = getRowHeight();
+  // Calculate overflow width for a plan
+  const calculateOverflowWidth = (plan: Plan) => {
+    const timelineEl = document.querySelector('[data-timeline]');
+    if (!timelineEl) return 0;
+    
+    const timelineWidth = timelineEl.clientWidth;
+    const pixelsPerDay = timelineWidth / daysInYear;
+    const planDuration = differenceInDays(plan.endDate, plan.startDate);
+    const cardWidth = Math.max(40, planDuration * pixelsPerDay);
+    
+    if (cardWidth >= MIN_CARD_WIDTH_FOR_CONTENT) return 0;
+    
+    const titleLength = plan.title.length * 7;
+    const dateLength = 80;
+    return Math.max(120, titleLength + dateLength + 16);
+  };
 
   // Calculate positions for each plan with collision detection
-  const getStackedPlans = () => {
+  // Now considers overflow content width for proper stacking
+  const getStackedPlans = useMemo(() => {
     const sortedPlans = [...plans].sort(
       (a, b) => a.startDate.getTime() - b.startDate.getTime()
     );
 
-    const stacks: Plan[][] = [];
+    const timelineEl = document.querySelector('[data-timeline]');
+    const timelineWidth = timelineEl?.clientWidth || 1000;
+    const pixelsPerDay = timelineWidth / daysInYear;
+
+    const stacks: { plan: Plan; effectiveEnd: number }[][] = [];
 
     sortedPlans.forEach((plan) => {
+      const startDayOfYear = differenceInDays(plan.startDate, yearStart);
+      const planDuration = differenceInDays(plan.endDate, plan.startDate);
+      const cardWidth = Math.max(40, planDuration * pixelsPerDay);
+      const overflowWidth = calculateOverflowWidth(plan);
+      const effectiveWidth = cardWidth + overflowWidth;
+      const startPixel = startDayOfYear * pixelsPerDay;
+      const effectiveEndPixel = startPixel + effectiveWidth;
+
       let placed = false;
       for (let i = 0; i < stacks.length; i++) {
         const lastInStack = stacks[i][stacks[i].length - 1];
-        if (plan.startDate >= lastInStack.endDate) {
-          stacks[i].push(plan);
+        // Check if this plan's start is past the last plan's effective end (including overflow)
+        if (startPixel >= lastInStack.effectiveEnd + 4) { // 4px gap
+          stacks[i].push({ plan, effectiveEnd: effectiveEndPixel });
           placed = true;
           break;
         }
       }
       if (!placed) {
-        stacks.push([plan]);
+        stacks.push([{ plan, effectiveEnd: effectiveEndPixel }]);
       }
     });
 
     const planStackMap = new Map<string, number>();
     stacks.forEach((stack, stackIndex) => {
-      stack.forEach((plan) => {
+      stack.forEach(({ plan }) => {
         planStackMap.set(plan.id, stackIndex);
       });
     });
 
     return { planStackMap, stackCount: stacks.length };
-  };
+  }, [plans, yearStart, daysInYear]);
 
-  const { planStackMap, stackCount } = getStackedPlans();
-  const minHeight = Math.max(60, stackCount * rowHeight + 24);
+  const { planStackMap, stackCount } = getStackedPlans;
+
+  // Calculate max row height considering individual plan densities
+  const maxRowHeight = useMemo(() => {
+    const heights = plans.map(plan => {
+      const effectiveDensity = plan.displayDensity || cardDensity;
+      return getRowHeight(effectiveDensity);
+    });
+    return Math.max(getRowHeight(cardDensity), ...heights);
+  }, [plans, cardDensity]);
+
+  const minHeight = Math.max(60, stackCount * maxRowHeight + 24);
 
   const handleLaneClick = (e: React.MouseEvent) => {
     // Only trigger if clicking directly on the lane, not on a card
@@ -125,7 +166,7 @@ export const Swimlane = ({
       {/* Timeline Area */}
       <div
         className={cn(
-          'relative flex-1 transition-colors',
+          'relative flex-1 transition-colors overflow-visible',
           isDragTarget && 'ring-2 ring-inset ring-primary/50 bg-primary/5',
         )}
         style={{ 
@@ -152,7 +193,7 @@ export const Swimlane = ({
             const pixelsPerDay = timelineWidth / daysInYear;
             return {
               offset: startDayOfYear * pixelsPerDay,
-              width: Math.max(60, planDuration * pixelsPerDay),
+              width: Math.max(40, planDuration * pixelsPerDay),
             };
           };
 
