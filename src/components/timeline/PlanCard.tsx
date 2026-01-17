@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plan, Channel } from '@/types/plan';
+import { Plan } from '@/types/plan';
 import { usePlans } from '@/context/PlansContext';
 import { useResizeIndicator } from '@/context/ResizeIndicatorContext';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { GitBranch } from 'lucide-react';
 
 interface PlanCardProps {
   plan: Plan;
@@ -13,6 +14,7 @@ interface PlanCardProps {
   onDoubleClick: () => void;
   onDragStart: (plan: Plan, e: React.MouseEvent) => void;
   isDraggingExternal: boolean;
+  isDropTarget?: boolean;
 }
 
 export const PlanCard = ({ 
@@ -22,9 +24,10 @@ export const PlanCard = ({
   stackIndex, 
   onDoubleClick,
   onDragStart,
-  isDraggingExternal 
+  isDraggingExternal,
+  isDropTarget = false,
 }: PlanCardProps) => {
-  const { updatePlan, snapMode } = usePlans();
+  const { updatePlan, snapMode, getChildPlans } = usePlans();
   const { setIndicator, clearIndicator } = useResizeIndicator();
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -207,14 +210,18 @@ export const PlanCard = ({
   }, [isResizingStart, isResizingEnd, dragStartX, originalOffset, originalWidth, currentOffset, currentWidth, plan, updatePlan]);
 
   const isResizing = isResizingStart || isResizingEnd;
+  const hasChildren = getChildPlans(plan.id).length > 0;
 
   return (
     <div
       ref={cardRef}
+      data-plan-id={plan.id}
       className={cn(
         'absolute flex cursor-grab items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium shadow-sm transition-all select-none',
         isResizing ? 'cursor-col-resize shadow-lg ring-2 ring-primary/30' : 'hover:shadow-md',
         isDraggingExternal && 'opacity-50',
+        isDropTarget && 'ring-2 ring-primary shadow-lg scale-105',
+        plan.parentPlanId && 'border-l-4 border-l-primary/50',
       )}
       style={{
         left: `${currentOffset}px`,
@@ -252,7 +259,20 @@ export const PlanCard = ({
         onMouseDown={handleResizeStartBegin}
       />
 
+      {/* Sub-plan indicator */}
+      {plan.parentPlanId && (
+        <GitBranch className="h-3 w-3 text-foreground/60 shrink-0" />
+      )}
+
       <span className="truncate font-semibold pointer-events-none">{plan.title}</span>
+      
+      {/* Child indicator */}
+      {hasChildren && (
+        <span className="text-xs bg-foreground/20 rounded-full px-1.5 py-0.5 shrink-0">
+          {getChildPlans(plan.id).length}
+        </span>
+      )}
+      
       <span className="ml-auto shrink-0 text-xs opacity-75 pointer-events-none">
         {format(plan.startDate, 'MMM d')} - {format(plan.endDate, 'MMM d')}
       </span>

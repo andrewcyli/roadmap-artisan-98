@@ -16,6 +16,7 @@ interface SwimlaneProps {
   onDrop: (e: React.DragEvent, labelId: string | undefined) => void;
   isDragTarget: boolean;
   draggingPlan: Plan | null;
+  dropTargetPlanId: string | null;
 }
 
 export const Swimlane = ({ 
@@ -30,6 +31,7 @@ export const Swimlane = ({
   onDrop,
   isDragTarget,
   draggingPlan,
+  dropTargetPlanId,
 }: SwimlaneProps) => {
   const { zoomLevel } = usePlans();
   const yearStart = startOfYear(new Date(2025, 0, 1));
@@ -143,6 +145,7 @@ export const Swimlane = ({
                 onDoubleClick={() => onPlanDoubleClick(plan)}
                 onDragStart={onDragStart}
                 isDraggingExternal={draggingPlan?.id === plan.id}
+                isDropTarget={dropTargetPlanId === plan.id}
               />
             </div>
           );
