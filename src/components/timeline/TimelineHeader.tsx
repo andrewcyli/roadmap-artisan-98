@@ -191,6 +191,9 @@ export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProp
         ))}
       </div>
 
+      {/* Export Menu */}
+      <ExportMenu />
+
       {/* Add Plan Button */}
       <Button onClick={onAddPlan} className="gap-2">
         <Plus className="h-4 w-4" />
