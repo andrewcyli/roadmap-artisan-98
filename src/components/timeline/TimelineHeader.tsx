@@ -23,7 +23,15 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Search, Calendar, Layers, Plus, Magnet, Settings, AlignJustify, LayoutList, LayoutDashboard, Menu, Filter } from 'lucide-react';
+import { Search, Calendar, Layers, Plus, Magnet, Settings, AlignJustify, LayoutList, LayoutDashboard, Menu, Filter, Download, FileText, Table, Presentation } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { exportToCSV, exportToPDF, exportToPowerPoint } from '@/utils/exportUtils';
+import { toast } from 'sonner';
 import { useState } from 'react';
 
 interface TimelineHeaderProps {
@@ -32,10 +40,54 @@ interface TimelineHeaderProps {
 }
 
 export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProps) => {
-  const { zoomLevel, setZoomLevel, filterText, setFilterText, snapMode, setSnapMode, cardDensity, setCardDensity } = usePlans();
-  const { labelTypes, activeSwimlaneTypeId, setActiveSwimlaneTypeId } = useLabels();
+  const { plans, zoomLevel, setZoomLevel, filterText, setFilterText, snapMode, setSnapMode, cardDensity, setCardDensity } = usePlans();
+  const { labelTypes, labels, activeSwimlaneTypeId, setActiveSwimlaneTypeId, getLabelName, getLabelType } = useLabels();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const getExportData = () => ({
+    plans,
+    getLabelName,
+    getLabelTypeName: (id: string) => getLabelType(id)?.name || '',
+    labelTypes: labelTypes.map(lt => ({ id: lt.id, name: lt.name })),
+  });
+
+  const handleExportPDF = async () => {
+    const el = document.querySelector('[data-timeline-canvas]') as HTMLElement;
+    if (!el) { toast.error('Could not find timeline'); return; }
+    toast.promise(exportToPDF(el), { loading: 'Generating PDF...', success: 'PDF exported!', error: 'Export failed' });
+  };
+
+  const handleExportCSV = () => {
+    exportToCSV(getExportData());
+    toast.success('CSV exported!');
+  };
+
+  const handleExportPPTX = async () => {
+    toast.promise(exportToPowerPoint(getExportData()), { loading: 'Generating PowerPoint...', success: 'PowerPoint exported!', error: 'Export failed' });
+  };
+
+  const ExportMenu = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size={isMobile ? 'icon' : 'default'} className={isMobile ? '' : 'gap-2'}>
+          <Download className="h-4 w-4" />
+          {!isMobile && 'Export'}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleExportPDF} className="gap-2">
+          <FileText className="h-4 w-4" /> Export as PDF
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleExportCSV} className="gap-2">
+          <Table className="h-4 w-4" /> Export as CSV (Google Sheets)
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleExportPPTX} className="gap-2">
+          <Presentation className="h-4 w-4" /> Export as PowerPoint
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   const densityOptions: { value: CardDensity; icon: typeof AlignJustify; label: string }[] = [
     { value: 'condensed', icon: AlignJustify, label: 'Condensed - Title & dates only' },
@@ -138,6 +190,9 @@ export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProp
           </Button>
         ))}
       </div>
+
+      {/* Export Menu */}
+      <ExportMenu />
 
       {/* Add Plan Button */}
       <Button onClick={onAddPlan} className="gap-2">
@@ -283,6 +338,8 @@ export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProp
               <MobileMenuContent />
             </SheetContent>
           </Sheet>
+          
+          <ExportMenu />
           
           <Button onClick={onAddPlan} size="icon">
             <Plus className="h-4 w-4" />
