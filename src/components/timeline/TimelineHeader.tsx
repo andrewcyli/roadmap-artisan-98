@@ -58,9 +58,8 @@ export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProp
     toast.promise(exportToPDF(el), { loading: 'Generating PDF...', success: 'PDF exported!', error: 'Export failed' });
   };
 
-  const handleExportCSV = () => {
-    exportToCSV(getExportData());
-    toast.success('CSV exported!');
+  const handleExportCSV = async () => {
+    toast.promise(exportToCSV(getExportData()), { loading: 'Generating Excel...', success: 'Excel exported!', error: 'Export failed' });
   };
 
   const handleExportPPTX = async () => {
@@ -80,7 +79,7 @@ export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProp
           <FileText className="h-4 w-4" /> Export as PDF
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleExportCSV} className="gap-2">
-          <Table className="h-4 w-4" /> Export as CSV (Google Sheets)
+          <Table className="h-4 w-4" /> Export as Excel (Google Sheets)
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleExportPPTX} className="gap-2">
           <Presentation className="h-4 w-4" /> Export as PowerPoint
