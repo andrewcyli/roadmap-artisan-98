@@ -58,9 +58,8 @@ export const TimelineHeader = ({ onAddPlan, onManageLabels }: TimelineHeaderProp
     toast.promise(exportToPDF(el), { loading: 'Generating PDF...', success: 'PDF exported!', error: 'Export failed' });
   };
 
-  const handleExportCSV = () => {
-    exportToCSV(getExportData());
-    toast.success('CSV exported!');
+  const handleExportCSV = async () => {
+    toast.promise(exportToCSV(getExportData()), { loading: 'Generating Excel...', success: 'Excel exported!', error: 'Export failed' });
   };
 
   const handleExportPPTX = async () => {
