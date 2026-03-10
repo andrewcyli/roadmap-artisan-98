@@ -23,7 +23,15 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Search, Calendar, Layers, Plus, Magnet, Settings, AlignJustify, LayoutList, LayoutDashboard, Menu, Filter } from 'lucide-react';
+import { Search, Calendar, Layers, Plus, Magnet, Settings, AlignJustify, LayoutList, LayoutDashboard, Menu, Filter, Download, FileText, Table, Presentation } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { exportToCSV, exportToPDF, exportToPowerPoint } from '@/utils/exportUtils';
+import { toast } from 'sonner';
 import { useState } from 'react';
 
 interface TimelineHeaderProps {
