@@ -470,6 +470,14 @@ For v1:
 - user can choose A / B / C during project setup
 - custom user-defined preset creation can come after v1
 
+### Starting template choice at project creation
+Users should choose one of:
+- **Blank year**
+- **Sample populated year**
+
+Decision locked:
+- v1 should offer **choose blank or sample** during project creation
+
 ### Collaboration posture for v1
 Not true multiplayer editing yet.
 Instead:
