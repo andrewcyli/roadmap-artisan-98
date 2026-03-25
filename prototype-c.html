@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marketing Canvas — Strategy Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --surface-2: #F0EEE9;
+  --surface-3: #E8E5DF;
+  --border: #DDD9D0;
+  --border-strong: #C5C0B5;
+  --text-primary: #1C1917;
+  --text-secondary: #57534E;
+  --text-muted: #A8A29E;
+  --accent: #E07A2F;
+  --accent-dark: #C4621F;
+  --accent-light: #FEF0E6;
+  --success: #16A34A;
+  --warning: #D97706;
+  --danger: #DC2626;
+  --info: #0284C7;
+  --shadow-xs: 0 1px 2px rgba(28,25,23,0.05);
+  --shadow-sm: 0 2px 6px rgba(28,25,23,0.07), 0 1px 2px rgba(28,25,23,0.05);
+  --shadow-md: 0 6px 20px rgba(28,25,23,0.1), 0 2px 6px rgba(28,25,23,0.06);
+  --shadow-lg: 0 16px 40px rgba(28,25,23,0.12), 0 4px 12px rgba(28,25,23,0.08);
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Campaign type colors */
+  --brand: #8B5CF6;
+  --product-launch: #06B6D4;
+  --seasonal: #F59E0B;
+  --promo: #EF4444;
+  --content: #059669;
+  --always-on: #6366F1;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== LAYOUT ===== */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  height: 60px;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.app-logo-mark {
+  width: 32px;
+  height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.header-project {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 5px 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.header-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  padding: 3px;
+  border: 1px solid var(--border);
+}
+
+.header-tab {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border: none;
+  background: transparent;
+  transition: all 0.15s;
+  font-family: var(--font);
+}
+
+.header-tab.active {
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.header-spacer { flex: 1; }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  font-family: var(--font);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+}
+.btn-ghost:hover { background: var(--surface-2); color: var(--text-primary); }
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 8px rgba(224, 122, 47, 0.35);
+}
+.btn-primary:hover { background: var(--accent-dark); box-shadow: 0 4px 12px rgba(224, 122, 47, 0.45); }
+
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+
+/* ===== FILTER BAR ===== */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.filter-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.12s;
+  opacity: 1;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.filter-pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.filter-pill:hover { opacity: 0.8; transform: translateY(-1px); }
+.filter-pill.muted { opacity: 0.3; }
+.filter-pill.active { color: var(--text-primary); }
+
+.filter-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+/* ===== BODY ===== */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===== IDEAS POOL — PROMINENT (STRATEGY STUDIO STYLE) ===== */
+.ideas-pool {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ideas-pool.collapsed { width: 48px; }
+
+.pool-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1.5px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.pool-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pool-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.ideas-pool.collapsed .pool-title,
+.ideas-pool.collapsed .pool-eyebrow,
+.ideas-pool.collapsed .pool-count-badge { display: none; }
+
+.pool-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1.5px solid rgba(224,122,47,0.25);
+  padding: 2px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.pool-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border: none;
+  background: transparent;
+  transition: all 0.1s;
+  flex-shrink: 0;
+}
+.pool-toggle:hover { background: var(--surface-2); color: var(--text-primary); }
+
+.ideas-pool.collapsed .pool-toggle { margin: 0 auto; }
+
+.pool-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+.ideas-pool.collapsed .pool-body { display: none; }
+
+.idea-card {
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+
+.idea-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.idea-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.idea-card:hover::before { opacity: 1; }
+
+.idea-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 2px rgba(224,122,47,0.3), var(--shadow-sm);
+}
+
+.idea-card.selected::before { opacity: 1; }
+
+.idea-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.idea-channel-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.idea-status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.idea-status-badge.tbd { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+.idea-status-badge.review { background: #DBEAFE; color: #1E40AF; border: 1px solid #93C5FD; }
+
+.idea-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  line-height: 1.35;
+  letter-spacing: -0.1px;
+}
+
+.idea-note {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.idea-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.idea-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.idea-cta {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.idea-cta-btn {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  font-family: var(--font);
+  padding: 0;
+  transition: opacity 0.1s;
+}
+.idea-cta-btn:hover { opacity: 0.7; }
+
+/* ===== CANVAS AREA ===== */
+.canvas-area {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  background: var(--bg);
+}
+
+/* ===== CAMPAIGN GROUP BAND (STRATEGY STUDIO — more prominent) ===== */
+.cg-bands {
+  position: absolute;
+  top: 52px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cg-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  opacity: 0.07;
+  border-radius: 0;
+  transition: opacity 0.2s;
+}
+
+.canvas-area:hover .cg-band { opacity: 0.1; }
+
+/* Campaign group floating labels */
+.cg-label {
+  position: absolute;
+  top: 56px;
+  z-index: 8;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cg-label-chip {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 5px;
+  color: white;
+  white-space: nowrap;
+}
+
+.cg-label-arrow {
+  width: 30px;
+  height: 2px;
+  opacity: 0.4;
+}
+
+/* ===== TIMELINE ===== */
+.timeline-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  height: 52px;
+}
+
+.timeline-label-col {
+  width: 180px;
+  flex-shrink: 0;
+  border-right: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  background: var(--surface);
+  position: sticky;
+  left: 0;
+  z-index: 21;
+}
+
+.timeline-months {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.timeline-month {
+  flex: 1;
+  min-width: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border);
+  letter-spacing: -0.1px;
+}
+
+.timeline-month:last-child { border-right: none; }
+
+.timeline-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--danger);
+  opacity: 0.5;
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* ===== SWIMLANE ===== */
+.swimlane {
+  display: flex;
+  align-items: stretch;
+  min-height: 88px;
+  border-bottom: 1.5px solid var(--border);
+  position: relative;
+  background: var(--surface);
+  transition: background 0.15s;
+}
+
+.swimlane:hover { background: #FEFEFE; }
+
+.swimlane-label {
+  width: 180px;
+  flex-shrink: 0;
+  border-right: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  position: sticky;
+  left: 0;
+  background: inherit;
+  z-index: 10;
+  gap: 10px;
+}
+
+.swimlane-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  color: white;
+}
+
+.swimlane-label-text { flex: 1; }
+
+.swimlane-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+}
+
+.swimlane-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+.swimlane-cards-area {
+  flex: 1;
+  position: relative;
+  min-height: 88px;
+  padding: 10px 0;
+}
+
+/* ===== PLAN CARDS — STRATEGY STUDIO CARD STYLE ===== */
+.plan-card {
+  position: absolute;
+  top: 10px;
+  height: calc(100% - 20px);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1.5px solid transparent;
+}
+
+.plan-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+}
+
+.plan-card.selected {
+  box-shadow: 0 0 0 2.5px white, 0 0 0 4.5px var(--accent), var(--shadow-md);
+  z-index: 11;
+  transform: translateY(-2px);
+}
+
+.plan-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  justify-content: space-between;
+}
+
+.plan-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.35;
+  flex: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  letter-spacing: -0.1px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+.plan-card-type {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+.plan-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.plan-card-dates {
+  font-size: 10px;
+  color: rgba(255,255,255,0.8);
+  font-weight: 600;
+  letter-spacing: -0.1px;
+}
+
+.plan-card-status {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.status-active { background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); }
+.status-planned { background: rgba(0,0,0,0.2); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.2); }
+.status-review { background: #FCD34D; color: #713F12; }
+
+/* Card type styles — Strategy Studio uses richer backgrounds */
+.type-brand { background: linear-gradient(135deg, var(--brand), #7C3AED); }
+.type-product-launch { background: linear-gradient(135deg, var(--product-launch), #0891B2); }
+.type-seasonal { background: linear-gradient(135deg, var(--seasonal), #D97706); }
+.type-promo { background: linear-gradient(135deg, var(--promo), #DC2626); }
+.type-content { background: linear-gradient(135deg, var(--content), #047857); }
+.type-always-on { background: linear-gradient(135deg, var(--always-on), #4F46E5); }
+
+/* ===== MILESTONES — STRATEGY STUDIO (dramatic) ===== */
+.milestone {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid;
+  background: var(--surface);
+  z-index: 8;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.milestone:hover {
+  transform: translate(-50%, -50%) rotate(45deg) scale(1.4);
+  z-index: 15;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+
+.milestone-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  animation: pulse 2s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); opacity: 0.6; }
+  50% { transform: translate(-50%, -50%) rotate(45deg) scale(2); opacity: 0; }
+}
+
+.milestone-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) rotate(0deg);
+  background: var(--text-primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 30;
+  letter-spacing: -0.1px;
+  box-shadow: var(--shadow-md);
+}
+
+.milestone:hover .milestone-tooltip { opacity: 1; }
+
+/* ===== DETAIL PANEL ===== */
+.detail-panel {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 2px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.detail-panel.collapsed { width: 0; border-left: none; }
+
+.detail-panel-header {
+  padding: 16px 18px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.detail-type-pill {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.detail-type-pill.plan { background: var(--accent-light); color: var(--accent); border: 1.5px solid rgba(224,122,47,0.25); }
+.detail-type-pill.idea { background: #FEF3C7; color: #92400E; border: 1.5px solid #FCD34D; }
+.detail-type-pill.milestone { background: #FEE2E2; color: #991B1B; border: 1.5px solid #FECACA; }
+
+.detail-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+}
+
+.detail-panel-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.1s;
+}
+.detail-panel-close:hover { background: var(--surface-2); color: var(--text-primary); }
+
+.detail-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+
+.detail-section { margin-bottom: 20px; }
+
+.detail-section-title {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  padding-bottom: 7px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detail-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.detail-field-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  width: 68px;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.detail-field-value {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.detail-field input,
+.detail-field select,
+.detail-field textarea {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--text-primary);
+  background: var(--surface);
+  transition: border-color 0.1s, box-shadow 0.1s;
+}
+
+.detail-field input:focus,
+.detail-field select:focus,
+.detail-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(224, 122, 47, 0.12);
+}
+
+.detail-field textarea {
+  resize: vertical;
+  min-height: 72px;
+  line-height: 1.5;
+}
+
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.detail-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.detail-group-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+
+.detail-group-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+}
+
+.detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.detail-empty-icon { font-size: 40px; margin-bottom: 14px; opacity: 0.35; }
+.detail-empty-title { font-size: 15px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
+.detail-empty-text { font-size: 12px; opacity: 0.7; line-height: 1.5; }
+
+/* ===== QUICK ADD ===== */
+.quick-add-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(224, 122, 47, 0.45);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 50;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.quick-add-btn:hover {
+  transform: scale(1.12);
+  box-shadow: 0 8px 28px rgba(224, 122, 47, 0.55);
+}
+
+.quick-add-btn:active { transform: scale(0.95); }
+
+/* ===== PROTOTYPE BADGE ===== */
+.proto-badge {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--text-primary);
+  color: white;
+  border-radius: 24px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-md);
+}
+
+.proto-badge-sub {
+  font-weight: 500;
+  opacity: 0.65;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ===== SVG CONNECTOR ===== */
+#group-connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.connector-path {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+  opacity: 0.35;
+}
+
+/* ===== SCROLLBAR ===== */
+.canvas-area::-webkit-scrollbar { width: 8px; height: 8px; }
+.canvas-area::-webkit-scrollbar-track { background: transparent; }
+.canvas-area::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+.canvas-area::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+.ideas-pool::-webkit-scrollbar { width: 4px; }
+.ideas-pool::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+.detail-panel-body::-webkit-scrollbar { width: 4px; }
+.detail-panel-body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app-shell" id="app">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="app-logo">
+      <div class="app-logo-mark">MC</div>
+      Marketing Canvas
+    </div>
+    <div class="header-project">FY2026 · Classic Mix</div>
+
+    <div class="header-tabs">
+      <button class="header-tab active">Canvas</button>
+      <button class="header-tab">Ideas Board</button>
+      <button class="header-tab">Review Mode</button>
+    </div>
+
+    <div class="header-spacer"></div>
+    <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" onclick="toggleIdeasPanel()">
+        💡 Ideas
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="exportPNG()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export PNG
+      </button>
+    </div>
+  </header>
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar" id="filterBar">
+    <span class="filter-label">Channel</span>
+    <div id="typeFilters">
+      <button class="filter-pill active" data-type="brand" onclick="toggleTypeFilter('brand')">
+        <span class="dot" style="background:var(--brand)"></span> Brand
+      </button>
+      <button class="filter-pill active" data-type="product-launch" onclick="toggleTypeFilter('product-launch')">
+        <span class="dot" style="background:var(--product-launch)"></span> Product Launch
+      </button>
+      <button class="filter-pill active" data-type="seasonal" onclick="toggleTypeFilter('seasonal')">
+        <span class="dot" style="background:var(--seasonal)"></span> Seasonal
+      </button>
+      <button class="filter-pill active" data-type="promo" onclick="toggleTypeFilter('promo')">
+        <span class="dot" style="background:var(--promo)"></span> Promo
+      </button>
+      <button class="filter-pill active" data-type="content" onclick="toggleTypeFilter('content')">
+        <span class="dot" style="background:var(--content)"></span> Content
+      </button>
+      <button class="filter-pill active" data-type="always-on" onclick="toggleTypeFilter('always-on')">
+        <span class="dot" style="background:var(--always-on)"></span> Always-on
+      </button>
+    </div>
+    <div class="filter-divider"></div>
+    <span class="filter-label">Status</span>
+    <div id="statusFilters">
+      <button class="filter-pill active" data-status="active" onclick="toggleStatusFilter('active')">● Active</button>
+      <button class="filter-pill active" data-status="planned" onclick="toggleStatusFilter('planned')">● Planned</button>
+      <button class="filter-pill active" data-status="review" onclick="toggleStatusFilter('review')">● In Review</button>
+    </div>
+    <div class="filter-divider"></div>
+    <button class="btn btn-ghost btn-xs" onclick="resetFilters()">Reset all</button>
+  </div>
+
+  <!-- BODY -->
+  <div class="app-body">
+
+    <!-- IDEAS POOL — PROMINENT -->
+    <aside class="ideas-pool" id="ideasPool">
+      <div class="pool-header">
+        <div>
+          <div class="pool-eyebrow">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--accent)"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="white"/></svg>
+            TBC / Unscheduled
+          </div>
+          <div class="pool-title">Ideas Pool</div>
+        </div>
+        <div class="pool-count-badge" id="ideasCount">5 ideas</div>
+        <button class="pool-toggle" onclick="toggleIdeasPanel()" title="Toggle Ideas">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
+      <div class="pool-body" id="ideasPoolBody">
+        <!-- Ideas injected by JS -->
+      </div>
+    </aside>
+
+    <!-- CANVAS -->
+    <main class="canvas-area" id="canvasArea">
+      <!-- Campaign group color bands -->
+      <div class="cg-bands" id="cgBands"></div>
+
+      <!-- Timeline -->
+      <div class="timeline-header">
+        <div class="timeline-label-col">Campaign Type</div>
+        <div class="timeline-months" id="timelineMonths"></div>
+      </div>
+
+      <!-- Swimlanes -->
+      <div id="swimlanes"></div>
+
+      <!-- SVG connector overlay -->
+      <svg id="group-connectors"></svg>
+
+      <!-- Today line -->
+      <div class="timeline-today-line" id="todayLine"></div>
+    </main>
+
+    <!-- DETAIL PANEL -->
+    <aside class="detail-panel" id="detailPanel">
+      <div class="detail-panel-header">
+        <div class="detail-type-pill plan" id="detailTypePill">Plan</div>
+        <div class="detail-title" id="detailTitle">Select an item</div>
+        <button class="detail-panel-close" onclick="closeDetailPanel()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="detail-panel-body" id="detailBody">
+        <div class="detail-empty">
+          <div class="detail-empty-icon">💡</div>
+          <div class="detail-empty-title">Nothing selected yet</div>
+          <div class="detail-empty-text">Click any card on the canvas, an idea from the pool, or a milestone diamond to explore details</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- QUICK ADD -->
+  <button class="quick-add-btn" onclick="showQuickAdd()" title="Quick Add">+</button>
+
+  <!-- PROTOTYPE BADGE -->
+  <div class="proto-badge">
+    Strategy Studio
+    <span class="proto-badge-sub">— Idea-forward · FY2026</span>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA (same dataset for fair comparison)
+// ═══════════════════════════════════════════════════════════
+
+const YEAR_START = new Date('2026-01-01');
+const YEAR_END = new Date('2026-12-31');
+const TOTAL_DAYS = Math.floor((YEAR_END - YEAR_START) / (1000 * 60 * 60 * 24));
+
+const CAMPAIGN_GROUPS = [
+  { id: 'spring', name: 'Spring Product Launch', objective: 'Launch flagship product and sustain post-launch demand', color: '#3B82F6', start: '2026-02-10', end: '2026-04-30' },
+  { id: 'summer', name: 'Summer Engagement Push', objective: 'Increase mid-year engagement and maintain momentum', color: '#F97316', start: '2026-05-20', end: '2026-07-31' },
+  { id: 'golden', name: 'Golden Week Conversion', objective: 'Drive conversion during major shopping period', color: '#EF4444', start: '2026-09-01', end: '2026-10-15' },
+  { id: 'yearend', name: 'Year-End Retention Drive', objective: 'Retain customers and extend value post-peak season', color: '#22C55E', start: '2026-11-01', end: '2026-12-20' },
+];
+
+const SWIMLANES = [
+  { id: 'brand', name: 'Brand', icon: '🏷️', color: '#8B5CF6' },
+  { id: 'product-launch', name: 'Product Launch', icon: '🚀', color: '#06B6D4' },
+  { id: 'seasonal', name: 'Seasonal', icon: '🎯', color: '#F59E0B' },
+  { id: 'promo', name: 'Promo', icon: '🔥', color: '#EF4444' },
+  { id: 'content', name: 'Content', icon: '📝', color: '#059669' },
+  { id: 'always-on', name: 'Always-on', icon: '♾️', color: '#6366F1' },
+];
+
+const PLAN_ITEMS = [
+  { id: 'p1', title: 'Brand Message Reinforcement', type: 'brand', owner: 'Sarah Chen', start: '2026-03-15', end: '2026-04-15', status: 'active', group: 'spring', tags: ['brand-awareness', 'q1', 'post-launch'] },
+  { id: 'p2', title: 'Summer Theme Brand Burst', type: 'brand', owner: 'Sarah Chen', start: '2026-05-20', end: '2026-06-20', status: 'planned', group: 'summer', tags: ['seasonal', 'summer'] },
+  { id: 'p3', title: 'Brand Trust Support', type: 'brand', owner: 'James Liu', start: '2026-09-12', end: '2026-10-05', status: 'planned', group: 'golden', tags: ['conversion', 'gifting'] },
+  { id: 'p4', title: 'Loyalty Storytelling', type: 'brand', owner: 'Sarah Chen', start: '2026-11-01', end: '2026-11-25', status: 'planned', group: 'yearend', tags: ['retention', 'loyalty'] },
+  { id: 'p5', title: 'Launch Campaign Wave 1', type: 'product-launch', owner: 'Maya Patel', start: '2026-03-01', end: '2026-03-21', status: 'active', group: 'spring', tags: ['launch', 'paid-media'] },
+  { id: 'p6', title: 'Product Bundle Campaign', type: 'product-launch', owner: 'Maya Patel', start: '2026-09-15', end: '2026-10-10', status: 'planned', group: 'golden', tags: ['bundles', 'conversion'] },
+  { id: 'p7', title: 'Seasonal Flagship Push', type: 'seasonal', owner: 'Tom Vance', start: '2026-09-10', end: '2026-10-07', status: 'planned', group: 'golden', tags: ['seasonal', 'gw'] },
+  { id: 'p8', title: 'Seasonal Offer Window', type: 'seasonal', owner: 'Tom Vance', start: '2026-06-15', end: '2026-07-10', status: 'planned', group: 'summer', tags: ['summer', 'offer'] },
+  { id: 'p9', title: 'Seasonal Gifting Push', type: 'seasonal', owner: 'Tom Vance', start: '2026-11-15', end: '2026-12-18', status: 'planned', group: 'yearend', tags: ['holiday', 'gifting'] },
+  { id: 'p10', title: 'Retail Promo Support', type: 'promo', owner: 'Lisa Wong', start: '2026-03-08', end: '2026-03-28', status: 'active', group: 'spring', tags: ['retail', 'trade'] },
+  { id: 'p11', title: 'Engagement Promo Layer', type: 'promo', owner: 'Lisa Wong', start: '2026-06-20', end: '2026-07-05', status: 'planned', group: 'summer', tags: ['engagement', 'summer'] },
+  { id: 'p12', title: 'Promo Spike Offer', type: 'promo', owner: 'Lisa Wong', start: '2026-09-20', end: '2026-10-07', status: 'planned', group: 'golden', tags: ['gw', 'promo'] },
+  { id: 'p13', title: 'Retention Incentive Offer', type: 'promo', owner: 'Lisa Wong', start: '2026-11-18', end: '2026-12-10', status: 'planned', group: 'yearend', tags: ['retention', 'loyalty'] },
+  { id: 'p14', title: 'Teaser Content Burst', type: 'content', owner: 'Alex Kim', start: '2026-02-10', end: '2026-02-28', status: 'review', group: 'spring', tags: ['teaser', 'awareness'] },
+  { id: 'p15', title: 'Community Challenge Series', type: 'content', owner: 'Alex Kim', start: '2026-06-01', end: '2026-07-15', status: 'planned', group: 'summer', tags: ['community', 'ugc'] },
+  { id: 'p16', title: 'Conversion Creative Refresh', type: 'content', owner: 'Alex Kim', start: '2026-09-01', end: '2026-09-18', status: 'planned', group: 'golden', tags: ['conversion', 'creative'] },
+  { id: 'p17', title: 'Holiday Content Series', type: 'content', owner: 'Alex Kim', start: '2026-11-05', end: '2026-12-20', status: 'planned', group: 'yearend', tags: ['holiday', 'seasonal'] },
+  { id: 'p18', title: 'Always-on Amplification', type: 'always-on', owner: 'Dana Park', start: '2026-03-01', end: '2026-04-30', status: 'active', group: 'spring', tags: ['always-on', 'paid'] },
+  { id: 'p19', title: 'Always-on Retargeting', type: 'always-on', owner: 'Dana Park', start: '2026-06-01', end: '2026-07-31', status: 'planned', group: 'summer', tags: ['retargeting', 'paid'] },
+  { id: 'p20', title: 'Always-on Winback', type: 'always-on', owner: 'Dana Park', start: '2026-11-01', end: '2026-12-20', status: 'planned', group: 'yearend', tags: ['winback', 'retention'] },
+];
+
+const MILESTONES = [
+  { id: 'm1', title: 'Final Creative Approval', date: '2026-02-24', type: 'approval', group: 'spring' },
+  { id: 'm2', title: 'Public Launch Day', date: '2026-03-05', type: 'launch', group: 'spring' },
+  { id: 'm3', title: 'Summer Launch Review', date: '2026-06-05', type: 'review', group: 'summer' },
+  { id: 'm4', title: 'Offer Lock — No More Changes', date: '2026-09-08', type: 'deadline', group: 'golden' },
+  { id: 'm5', title: 'Golden Week Kicks Off', date: '2026-10-01', type: 'event', group: 'golden' },
+  { id: 'm6', title: 'Holiday Readiness Review', date: '2026-11-10', type: 'review', group: 'yearend' },
+];
+
+const IDEAS = [
+  { id: 'i1', title: 'Partnership-led Awareness Burst', note: 'Co-branded collab with lifestyle partners for April — high reach potential. Needs partner vetting first.', channel: 'Brand', status: 'tbd', tags: ['partnership', 'apr', 'awareness'] },
+  { id: 'i2', title: 'New User Referral Mechanic', note: 'Summer referral program to drive new user acquisition. Requires product & growth alignment on mechanics.', channel: 'Promo', status: 'tbd', tags: ['referral', 'summer', 'acq'] },
+  { id: 'i3', title: 'Creator Collaboration Wave', note: 'September creator burst aligned with back-to-school/early-fall. UGC-heavy, authentic tone.', channel: 'Content', status: 'review', tags: ['creator', 'sep', 'ugc'] },
+  { id: 'i4', title: 'VIP Year-End Early Access', note: 'Exclusive early access for top-tier customers before holiday sale. Retention + delight play.', channel: 'Brand', status: 'tbd', tags: ['vip', 'yearend', 'retention'] },
+  { id: 'i5', title: 'Brand Film Concept', note: 'Pending budget sign-off. 60-second brand story film for mid-year release. Production brief ready.', channel: 'Content', status: 'review', tags: ['video', 'brand', 'budget-pending'] },
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+
+let activeFilters = {
+  types: new Set(['brand', 'product-launch', 'seasonal', 'promo', 'content', 'always-on']),
+  statuses: new Set(['active', 'planned', 'review']),
+};
+let selectedItem = null;
+let ideasPanelOpen = true;
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+
+function dateToPercent(dateStr) {
+  const d = new Date(dateStr);
+  const days = Math.floor((d - YEAR_START) / (1000 * 60 * 60 * 24));
+  return (days / TOTAL_DAYS) * 100;
+}
+
+function dateWidth(startStr, endStr) {
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  return (days / TOTAL_DAYS) * 100;
+}
+
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatDateRange(start, end) {
+  return `${formatDateShort(start)} → ${formatDateShort(end)}`;
+}
+
+function getMilestoneColor(type) {
+  const map = { launch: '#10B981', approval: '#8B5CF6', review: '#06B6D4', event: '#F97316', deadline: '#EF4444' };
+  return map[type] || '#6366F1';
+}
+
+function getStatusClass(status) {
+  if (status === 'active') return 'status-active';
+  if (status === 'review') return 'status-review';
+  return 'status-planned';
+}
+
+function getTypeLabel(type) {
+  const map = { brand: 'Brand', 'product-launch': 'Product', seasonal: 'Seasonal', promo: 'Promo', content: 'Content', 'always-on': 'Always-on' };
+  return map[type] || type;
+}
+
+function getOwnerInitials(name) {
+  return name.split(' ').map(n => n[0]).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: TIMELINE
+// ═══════════════════════════════════════════════════════════
+
+function renderTimeline() {
+  const container = document.getElementById('timelineMonths');
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  container.innerHTML = months.map(m => `<div class="timeline-month">${m}</div>`).join('');
+
+  // Today line
+  const today = new Date();
+  if (today >= YEAR_START && today <= YEAR_END) {
+    const left = dateToPercent(today.toISOString().split('T')[0]);
+    const line = document.getElementById('todayLine');
+    line.style.left = `calc(180px + ${left}% * (100% - 180px) / 100)`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: SWIMLANES + CARDS
+// ═══════════════════════════════════════════════════════════
+
+function renderSwimlanes() {
+  const container = document.getElementById('swimlanes');
+  container.innerHTML = '';
+
+  SWIMLANES.forEach(lane => {
+    const laneItems = PLAN_ITEMS.filter(p => p.type === lane.id);
+    const visibleItems = laneItems.filter(p =>
+      activeFilters.types.has(p.type) && activeFilters.statuses.has(p.status)
+    );
+
+    const laneEl = document.createElement('div');
+    laneEl.className = 'swimlane';
+    laneEl.dataset.type = lane.id;
+    laneEl.innerHTML = `
+      <div class="swimlane-label">
+        <div class="swimlane-icon" style="background:${lane.color}">${lane.icon}</div>
+        <div class="swimlane-label-text">
+          <div class="swimlane-name">${lane.name}</div>
+          <div class="swimlane-count">${visibleItems.length} item${visibleItems.length !== 1 ? 's' : ''}</div>
+        </div>
+      </div>
+      <div class="swimlane-cards-area" id="lane-${lane.id}">
+        ${visibleItems.map(p => renderPlanCard(p, lane)).join('')}
+      </div>
+    `;
+    container.appendChild(laneEl);
+  });
+
+  requestAnimationFrame(() => renderMilestones());
+}
+
+function renderPlanCard(plan, lane) {
+  const left = dateToPercent(plan.start);
+  const width = dateWidth(plan.start, plan.end);
+
+  return `
+    <div class="plan-card type-${plan.type}${selectedItem?.id === plan.id ? ' selected' : ''}"
+         id="card-${plan.id}"
+         style="left:${left}%;width:${width}%;"
+         onclick="selectItem('${plan.id}')">
+      <div class="plan-card-top">
+        <div class="plan-card-title">${plan.title}</div>
+        <div class="plan-card-type">${getTypeLabel(plan.type)}</div>
+      </div>
+      <div class="plan-card-bottom">
+        <div class="plan-card-status ${getStatusClass(plan.status)}">${plan.status === 'active' ? 'Live' : plan.status === 'review' ? 'Review' : 'Planned'}</div>
+        <div class="plan-card-dates">${formatDateRange(plan.start, plan.end)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMilestones() {
+  MILESTONES.forEach(ms => {
+    const msColor = getMilestoneColor(ms.type);
+    const left = dateToPercent(ms.date);
+
+    SWIMLANES.forEach(lane => {
+      const laneArea = document.getElementById(`lane-${lane.id}`);
+      if (!laneArea) return;
+      const existing = laneArea.querySelector(`[data-milestone="${ms.id}"]`);
+      if (existing) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = `position:absolute;left:${left}%;top:50%;transform:translateY(-50%);z-index:8;pointer-events:none;`;
+
+      const pulse = document.createElement('div');
+      pulse.className = 'milestone-pulse';
+      pulse.style.borderColor = msColor;
+      pulse.style.boxShadow = `0 0 0 0 ${msColor}`;
+
+      const el = document.createElement('div');
+      el.className = 'milestone';
+      el.dataset.milestone = ms.id;
+      el.style.borderColor = msColor;
+      el.style.position = 'relative';
+      el.style.pointerEvents = 'auto';
+      el.onclick = (e) => { e.stopPropagation(); selectMilestone(ms.id); };
+      el.innerHTML = `<div class="milestone-tooltip" style="background:${msColor}">◆ ${ms.title} · ${formatDateShort(ms.date)}</div>`;
+
+      wrapper.appendChild(pulse);
+      wrapper.appendChild(el);
+      laneArea.appendChild(wrapper);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: CAMPAIGN GROUP BANDS (more prominent in C)
+// ═══════════════════════════════════════════════════════════
+
+function renderGroupBands() {
+  const container = document.getElementById('cgBands');
+  container.innerHTML = '';
+  CAMPAIGN_GROUPS.forEach(g => {
+    const left = dateToPercent(g.start);
+    const width = dateWidth(g.start, g.end);
+    const el = document.createElement('div');
+    el.className = 'cg-band';
+    el.style.left = `${left}%`;
+    el.style.width = `${width}%`;
+    el.style.background = g.color;
+    container.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: CAMPAIGN GROUP FLOATING LABELS
+// ═══════════════════════════════════════════════════════════
+
+function renderGroupLabels() {
+  const canvas = document.getElementById('canvasArea');
+  canvas.querySelectorAll('.cg-label').forEach(e => e.remove());
+
+  CAMPAIGN_GROUPS.forEach(g => {
+    const left = dateToPercent(g.start);
+    const label = document.createElement('div');
+    label.className = 'cg-label';
+    label.style.left = `calc(180px + ${left}% * (100% - 180px) / 100)`;
+    label.innerHTML = `
+      <div class="cg-label-chip" style="background:${g.color}">${g.name}</div>
+      <div class="cg-label-arrow" style="background:${g.color};"></div>
+    `;
+    canvas.appendChild(label);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER: IDEAS POOL
+// ═══════════════════════════════════════════════════════════
+
+function renderIdeas() {
+  const body = document.getElementById('ideasPoolBody');
+  const count = document.getElementById('ideasCount');
+  count.textContent = `${IDEAS.length} ideas`;
+  body.innerHTML = IDEAS.map(idea => `
+    <div class="idea-card${selectedItem?.id === idea.id ? ' selected' : ''}" id="idea-${idea.id}" onclick="selectIdea('${idea.id}')">
+      <div class="idea-eyebrow">
+        <span class="idea-channel-badge">${idea.channel}</span>
+        <span class="idea-status-badge ${idea.status}">${idea.status === 'tbd' ? 'TBD' : 'Under Review'}</span>
+      </div>
+      <div class="idea-title">${idea.title}</div>
+      <div class="idea-note">${idea.note}</div>
+      <div class="idea-tags">
+        ${idea.tags.map(t => `<span class="idea-tag">#${t}</span>`).join('')}
+      </div>
+      <div class="idea-cta">
+        <button class="idea-cta-btn" onclick="event.stopPropagation(); alert('Convert to Plan — prototype')">→ Convert to plan</button>
+        <button class="idea-cta-btn" onclick="event.stopPropagation();">Schedule →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SELECTION & DETAIL PANEL
+// ═══════════════════════════════════════════════════════════
+
+function selectItem(id) {
+  const plan = PLAN_ITEMS.find(p => p.id === id);
+  if (!plan) return;
+  selectedItem = { type: 'plan', data: plan };
+  updateSelection();
+  renderDetailPanel();
+}
+
+function selectIdea(id) {
+  const idea = IDEAS.find(i => i.id === id);
+  if (!idea) return;
+  selectedItem = { type: 'idea', data: idea };
+  updateSelection();
+  renderDetailPanel();
+}
+
+function selectMilestone(id) {
+  const ms = MILESTONES.find(m => m.id === id);
+  if (!ms) return;
+  selectedItem = { type: 'milestone', data: ms };
+  updateSelection();
+  renderDetailPanel();
+}
+
+function updateSelection() {
+  document.querySelectorAll('.plan-card.selected, .idea-card.selected').forEach(el => el.classList.remove('selected'));
+  if (selectedItem?.type === 'plan') {
+    const el = document.getElementById(`card-${selectedItem.data.id}`);
+    if (el) el.classList.add('selected');
+  }
+  if (selectedItem?.type === 'idea') {
+    const el = document.getElementById(`idea-${selectedItem.data.id}`);
+    if (el) el.classList.add('selected');
+  }
+}
+
+function closeDetailPanel() {
+  selectedItem = null;
+  updateSelection();
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-empty">
+      <div class="detail-empty-icon">💡</div>
+      <div class="detail-empty-title">Nothing selected yet</div>
+      <div class="detail-empty-text">Click any card on the canvas, an idea from the pool, or a milestone diamond to explore details</div>
+    </div>`;
+  document.getElementById('detailTitle').textContent = 'Select an item';
+}
+
+function renderDetailPanel() {
+  if (!selectedItem) return;
+  const { type, data } = selectedItem;
+  const titleEl = document.getElementById('detailTitle');
+  const pillEl = document.getElementById('detailTypePill');
+  const body = document.getElementById('detailBody');
+
+  if (type === 'plan') {
+    const plan = data;
+    const lane = SWIMLANES.find(l => l.id === plan.type);
+    const group = CAMPAIGN_GROUPS.find(g => g.id === plan.group);
+    pillEl.className = 'detail-type-pill plan';
+    pillEl.textContent = '📅 Plan Item';
+    titleEl.textContent = plan.title;
+
+    body.innerHTML = `
+      <div class="detail-section">
+        <div class="detail-section-title">When</div>
+        <div class="detail-field">
+          <div class="detail-field-label">Start date</div>
+          <div class="detail-field-value">
+            <input type="date" value="${plan.start}" onchange="updatePlanField('${plan.id}','start',this.value)">
+          </div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-field-label">End date</div>
+          <div class="detail-field-value">
+            <input type="date" value="${plan.end}" onchange="updatePlanField('${plan.id}','end',this.value)">
+          </div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-field-label">Duration</div>
+          <div class="detail-field-value">${Math.floor((new Date(plan.end) - new Date(plan.start)) / (1000*60*60*24)) + 1} days</div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Who & What</div>
+        <div class="detail-field">
+          <div class="detail-field-label">Owner</div>
+          <div class="detail-field-value">
+            <input type="text" value="${plan.owner}" onchange="updatePlanField('${plan.id}','owner',this.value)">
+          </div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-field-label">Channel</div>
+          <div class="detail-field-value">
+            <select onchange="updatePlanField('${plan.id}','type',this.value)">
+              ${SWIMLANES.map(l => `<option value="${l.id}" ${l.id === plan.type ? 'selected' : ''}>${l.name}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-field-label">Status</div>
+          <div class="detail-field-value">
+            <select onchange="updatePlanField('${plan.id}','status',this.value)">
+              <option value="planned" ${plan.status === 'planned' ? 'selected' : ''}>Planned</option>
+              <option value="active" ${plan.status === 'active' ? 'selected' : ''}>Active</option>
+              <option value="review" ${plan.status === 'review' ? 'selected' : ''}>In Review</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Campaign Group</div>
+        <div class="detail-field">
+          <div class="detail-field-value">
+            ${group ? `<div class="detail-group-chip" style="background:${group.color}"><div class="detail-group-chip-dot"></div>${group.name}</div>` : '<span style="color:var(--text-muted);font-size:12px;">Not yet assigned to a group</span>'}
+            ${group ? `<div style="margin-top:8px;font-size:12px;color:var(--text-secondary);line-height:1.5;">${group.objective}</div>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Tags</div>
+        <div class="detail-tags">
+          ${plan.tags.map(t => `<span class="detail-tag">#${t}</span>`).join('')}
+          <span class="detail-tag" style="color:var(--accent);cursor:pointer;font-weight:700;">+ tag</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Notes</div>
+        <div class="detail-field">
+          <div class="detail-field-value">
+            <textarea placeholder="Add planning notes...">${plan.notes || ''}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (type === 'idea') {
+    const idea = data;
+    pillEl.className = 'detail-type-pill idea';
+    pillEl.textContent = '💡 Idea';
+    titleEl.textContent = idea.title;
+
+    body.innerHTML = `
+      <div class="detail-section">
+        <div class="detail-section-title">Classification</div>
+        <div class="detail-field">
+          <div class="detail-field-label">Channel</div>
+          <div class="detail-field-value">
+            <select>
+              ${SWIMLANES.map(l => `<option value="${l.id}" ${l.name === idea.channel ? 'selected' : ''}>${l.name}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-field-label">Status</div>
+          <div class="detail-field-value">
+            <select>
+              <option value="tbd" ${idea.status === 'tbd' ? 'selected' : ''}>TBD — Needs scoping</option>
+              <option value="review" ${idea.status === 'review' ? 'selected' : ''}>Under Review</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">The Idea</div>
+        <div class="detail-field">
+          <div class="detail-field-value">
+            <textarea style="min-height:90px;font-size:13px;line-height:1.6;">${idea.note}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Tags</div>
+        <div class="detail-tags">
+          ${idea.tags.map(t => `<span class="detail-tag">#${t}</span>`).join('')}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Move Forward</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="alert('Convert to Plan Item — prototype')">
+            💡 Convert to Plan Item
+          </button>
+          <button class="btn btn-ghost btn-sm">
+            📅 Schedule on Canvas →
+          </button>
+          <button class="btn btn-ghost btn-sm">
+            ✕ Discard Idea
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  if (type === 'milestone') {
+    const ms = data;
+    const group = CAMPAIGN_GROUPS.find(g => g.id === ms.group);
+    const msColor = getMilestoneColor(ms.type);
+    pillEl.className = 'detail-type-pill milestone';
+    pillEl.textContent = '◆ Milestone';
+    titleEl.textContent = ms.title;
+
+    body.innerHTML = `
+      <div class="detail-section">
+        <div class="detail-section-title">Milestone Details</div>
+        <div class="detail-field">
+          <div class="detail-field-label">Date</div>
+          <div class="detail-field-value">
+            <input type="date" value="${ms.date}">
+          </div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-field-label">Type</div>
+          <div class="detail-field-value">
+            <select>
+              <option value="launch" ${ms.type === 'launch' ? 'selected' : ''}>🚀 Launch</option>
+              <option value="review" ${ms.type === 'review' ? 'selected' : ''}>👁️ Review</option>
+              <option value="approval" ${ms.type === 'approval' ? 'selected' : ''}>✓ Approval</option>
+              <option value="event" ${ms.type === 'event' ? 'selected' : ''}>🎪 Event</option>
+              <option value="deadline" ${ms.type === 'deadline' ? 'selected' : ''}>⏰ Deadline</option>
+            </select>
+          </div>
+        </div>
+        <div class="detail-field">
+          <div class="detail-field-label">Campaign</div>
+          <div class="detail-field-value">
+            ${group ? `<div class="detail-group-chip" style="background:${group.color}"><div class="detail-group-chip-dot"></div>${group.name}</div>` : 'None assigned'}
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:12px;background:#FEF3C7;border:1.5px solid #FCD34D;border-radius:10px;font-size:12px;color:#92400E;line-height:1.5;">
+        <strong>⏰ This milestone is ${ms.type === 'deadline' ? 'a hard deadline' : 'a key anchor'} for the ${group?.name || 'campaign'}.</strong> Make sure related plan items are scheduled around this date.
+      </div>
+    `;
+  }
+}
+
+function updatePlanField(id, field, value) {
+  const plan = PLAN_ITEMS.find(p => p.id === id);
+  if (!plan) return;
+  plan[field] = value;
+  renderSwimlanes();
+  renderDetailPanel();
+}
+
+// ═══════════════════════════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════════════════════════
+
+function toggleTypeFilter(type) {
+  if (activeFilters.types.has(type)) activeFilters.types.delete(type);
+  else activeFilters.types.add(type);
+  updateFilterUI();
+  renderSwimlanes();
+}
+
+function toggleStatusFilter(status) {
+  if (activeFilters.statuses.has(status)) activeFilters.statuses.delete(status);
+  else activeFilters.statuses.add(status);
+  updateFilterUI();
+  renderSwimlanes();
+}
+
+function updateFilterUI() {
+  document.querySelectorAll('[data-type]').forEach(el => {
+    el.classList.toggle('active', activeFilters.types.has(el.dataset.type));
+    el.classList.toggle('muted', !activeFilters.types.has(el.dataset.type));
+  });
+  document.querySelectorAll('[data-status]').forEach(el => {
+    el.classList.toggle('active', activeFilters.statuses.has(el.dataset.status));
+    el.classList.toggle('muted', !activeFilters.statuses.has(el.dataset.status));
+  });
+}
+
+function resetFilters() {
+  activeFilters.types = new Set(['brand', 'product-launch', 'seasonal', 'promo', 'content', 'always-on']);
+  activeFilters.statuses = new Set(['active', 'planned', 'review']);
+  updateFilterUI();
+  renderSwimlanes();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL TOGGLES
+// ═══════════════════════════════════════════════════════════
+
+function toggleIdeasPanel() {
+  ideasPanelOpen = !ideasPanelOpen;
+  document.getElementById('ideasPool').classList.toggle('collapsed', !ideasPanelOpen);
+}
+
+// ═══════════════════════════════════════════════════════════
+// QUICK ADD
+// ═══════════════════════════════════════════════════════════
+
+function showQuickAdd() {
+  alert('Quick Add — prototype. Would open a modal to create a new Idea or Plan Item.');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PNG EXPORT
+// ═══════════════════════════════════════════════════════════
+
+async function exportPNG() {
+  const el = document.getElementById('app');
+  try {
+    const canvas = await html2canvas(el, {
+      backgroundColor: '#F7F6F3',
+      scale: 1.5,
+      useCORS: true,
+      logging: false,
+    });
+    const link = document.createElement('a');
+    link.download = 'marketing-canvas-fy2026-strategy-studio.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch (e) {
+    console.error('Export failed:', e);
+    alert('PNG export failed — check console');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+
+function init() {
+  renderTimeline();
+  renderSwimlanes();
+  renderGroupBands();
+  renderGroupLabels();
+  renderIdeas();
+  updateFilterUI();
+}
+
+init();
+</script>
+</body>
+</html>
