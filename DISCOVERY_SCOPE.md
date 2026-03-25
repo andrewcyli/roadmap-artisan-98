@@ -437,8 +437,38 @@ A marketing team is planning the year across campaign types and needs:
 ### Default information architecture
 - **Primary canvas horizon:** full year
 - **Primary swimlanes:** campaign types
+- **Default campaign-type set:** Classic marketing mix (A)
 - **Secondary metadata:** channel, owner, status, tags, notes
 - **Supporting zone:** ideas/TBC pool
+
+### Campaign-type presets at project creation
+Users should choose a starting preset when creating a project:
+- **Preset A — Classic marketing mix**
+  - Brand
+  - Product launch
+  - Seasonal
+  - Promo
+  - Content
+  - Always-on
+- **Preset B — Channel-led planning**
+  - Social
+  - CRM / Email
+  - Paid
+  - PR
+  - Events
+  - Partnerships
+- **Preset C — Strategy-led planning**
+  - Awareness
+  - Acquisition
+  - Engagement
+  - Conversion
+  - Retention
+  - Advocacy
+
+For v1:
+- default selection is **Preset A**
+- user can choose A / B / C during project setup
+- custom user-defined preset creation can come after v1
 
 ### Collaboration posture for v1
 Not true multiplayer editing yet.
