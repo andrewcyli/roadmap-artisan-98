@@ -412,12 +412,69 @@ Before build, we should lock these:
    - lightweight shared review
    - full multi-user collaboration
 
-## 12) Proposed next step
+## 12) Scope decisions locked with Andrew
 
-Before any code build:
-1. confirm target user + review moment
-2. confirm MVP vs non-MVP list
-3. select 3 prototype directions to design against one shared spec
-4. freeze scope for v1
+### Locked decisions
+- **Primary user:** marketing teams
+- **Primary review moment:** team planning
+- **Default planning horizon:** full year
+- **Default swimlane dimension:** campaign types
+- **Mandatory export for v1:** PNG and PDF
+- **Collaboration model for v1:** lightweight sharing
+
+## 13) Locked v1 product definition
+
+### Product statement
+A **marketing planning canvas** for annual and quarterly team planning that helps marketing teams turn rough campaign ideas into neat, structured, presentation-ready plans.
+
+### Primary use case
+A marketing team is planning the year across campaign types and needs:
+- a full-year visual plan
+- a clean place for tentative ideas
+- grouped campaign planning across the timeline
+- exportable outputs for review and circulation
+
+### Default information architecture
+- **Primary canvas horizon:** full year
+- **Primary swimlanes:** campaign types
+- **Secondary metadata:** channel, owner, status, tags, notes
+- **Supporting zone:** ideas/TBC pool
+
+### Collaboration posture for v1
+Not true multiplayer editing yet.
+Instead:
+- shareable read/review links
+- comment-light or note-light review behavior later if needed
+- single-editor / low-complexity collaboration posture for initial build
+
+## 14) Implications for prototype design
+
+### Prototype A — Executive Canvas
+Should optimize for:
+- annual planning clarity
+- clean swimlane/year layout
+- tidy campaign grouping
+- review-friendly export quality
+
+### Prototype B — Planner Pro
+Should optimize for:
+- team planning utility
+- richer metadata visibility
+- easier filtering by type/status/owner
+- operational clarity without becoming PM-heavy
+
+### Prototype C — Strategy Studio
+Should optimize for:
+- TBC ideas to scheduled plan workflow
+- exploratory planning at the top of funnel
+- flexible grouping and campaign shaping before dates are final
+
+## 15) Proposed next step
+
+Now that scope is locked:
+1. convert this into a tighter v1 feature spec
+2. define shared object model + interaction rules
+3. design 3 prototypes against the same locked scope
+4. review with Andrew before implementation build
 
 Only then build.
