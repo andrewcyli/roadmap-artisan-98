@@ -806,7 +806,7 @@
           const barWidth = getPlanWidth(plan, trackWidth);
           const rowH = DENSITY_META[state.density].rowHeight;
           const row = stack.map.get(plan.id) || 0;
-          const top = density.lanePad + row * rowH;
+          const top = DENSITY_META[state.density].lanePad + row * rowH;
           const selected = state.selectedPlanId === plan.id ? 'selected' : '';
           const statusColor = statusColors[plan.status] || '#94A3B8';
           const sc = 'style="color:' + statusColor + '"';
