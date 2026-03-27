@@ -68,7 +68,7 @@
       padding: 0 18px;
     }
     .brandmark {
-      width: 28px; height: 28px; border-radius: 8px;
+      width: 28px; height: 28px; border-radius: 999px;
       background: linear-gradient(135deg, #4F46E5, #7C3AED);
       color: white; display: grid; place-items: center;
       font-weight: 800; font-size: 12px;
@@ -298,7 +298,7 @@
 
     .plan {
       position: absolute;
-      border-radius: 8px;
+      border-radius: 999px;
       box-shadow: 0 2px 8px rgba(30,27,75,.08);
       cursor: default;
       transition: box-shadow .12s ease;
@@ -313,7 +313,7 @@
 
     .plan-bar {
       display: flex; align-items: center; gap: 8px;
-      border-radius: 6px;
+      border-radius: 999px;
       padding: 0 10px;
       color: rgba(255,255,255,.95);
       font-size: 11px; font-weight: 700;
@@ -335,12 +335,12 @@
     .plan:hover .resize-handle, .plan.resizing .resize-handle { opacity: 1; }
     .resize-handle:hover { background: rgba(255,255,255,.24); }
 
-    .density-extra { position: absolute; left: 2px; right: 0; top: 30px; font-size: 11px; color: var(--text-soft); }
+    .density-extra { position: absolute; left: 0; right: 0; top: 16px; overflow: visible; font-size: 11px; color: var(--text-soft); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 1px 0; }
     .density-extra.standard, .density-extra.comprehensive {
-      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
     }
-    .density-extra.comprehensive { flex-direction: column; align-items: flex-start; gap: 5px; }
-    .meta-pill { padding: 3px 7px; border-radius: 999px; background: rgba(79,70,229,.08); color: var(--text-soft); font-size: 10px; font-weight: 700; }
+    .density-extra.comprehensive { flex-direction: column; align-items: flex-start; gap: 3px; }
+    .meta-pill { padding: 2px 6px; border-radius: 999px; background: rgba(79,70,229,.08); color: var(--text-soft); font-size: 10px; font-weight: 700; white-space: nowrap; overflow: visible; flex-shrink: 0; }
     .plan-desc { max-width: 260px; line-height: 1.35; }
 
     .milestone {
@@ -572,12 +572,12 @@
     const DAYS_IN_YEAR = Math.round((YEAR_END - YEAR_START) / DAY_MS) + 1;
     const MIN_INLINE_WIDTH = 120;
     const LONG_PRESS_MS = 400;
-    const BAR_HEIGHT = 24;
-    // Heights = bar(24px) + metadata row. Keeps ~1:5 ratio at typical widths.
+    const BAR_HEIGHT = 14;
+    // Layout: bar (14px) + gap(2px) + meta row (12px) = 28px total. 1:5 ratio at ~140px width.
     const DENSITY_META = {
-      condensed:   { rowHeight: 32, lanePad: 12 },   // 32px — just bar + tiny gap
-      standard:    { rowHeight: 52, lanePad: 12 },   // 52px — bar + one meta row
-      comprehensive: { rowHeight: 80, lanePad: 12 }  // 80px — bar + richer meta row
+      condensed:   { rowHeight: 20, lanePad: 8 },   // 20px — bar only (no meta)
+      standard:    { rowHeight: 28, lanePad: 8 },   // 28px total — bar(14) + gap(2) + meta(12)
+      comprehensive: { rowHeight: 36, lanePad: 12 }  // 36px — bar(14) + gap(2) + meta(20, richer pills)
     };
 
     const laneMeta = [
@@ -806,7 +806,7 @@
           const barWidth = getPlanWidth(plan, trackWidth);
           const rowH = DENSITY_META[state.density].rowHeight;
           const row = stack.map.get(plan.id) || 0;
-          const top = 12 + row * rowH;
+          const top = density.lanePad + row * rowH;
           const selected = state.selectedPlanId === plan.id ? 'selected' : '';
           const statusColor = statusColors[plan.status] || '#94A3B8';
           const sc = 'style="color:' + statusColor + '"';
@@ -820,7 +820,7 @@
           const titleInside = barWidth >= 120;
           const dateInside = barWidth >= 200;
           return '<div class="plan ' + selected + '" data-plan-id="' + plan.id + '" style="left:' + left + 'px;top:' + top + 'px;width:' + barWidth + 'px;height:' + rowH + 'px;">' +
-            '<div class="plan-bar" style="background:' + (typeColors[plan.type] || '#94A3B8') + ';width:100%;height:' + rowH + 'px;">' +
+            '<div class="plan-bar" style="background:' + (typeColors[plan.type] || '#94A3B8') + ';width:100%;height:' + BAR_HEIGHT + 'px;top:0;">' +
               '<div class="resize-handle left"></div>' +
               (titleInside ? '<span class="plan-title">' + plan.title + '</span>' : '') +
               (dateInside ? '<span class="plan-dates">' + dateText + '</span>' : '') +
