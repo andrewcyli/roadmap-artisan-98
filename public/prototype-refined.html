@@ -305,6 +305,9 @@
       z-index: 10;
       user-select: none;
       overflow: visible;
+      /* Grid: bar on top, meta row below — meta can extend wider than bar */
+      display: grid;
+      grid-template-rows: auto auto;
     }
     .plan:hover { box-shadow: 0 4px 16px rgba(30,27,75,.12); }
     .plan.drag-armed { box-shadow: 0 0 0 3px rgba(79,70,229,.18), 0 10px 24px rgba(30,27,75,.16); }
@@ -319,7 +322,9 @@
       font-size: 11px; font-weight: 700;
       letter-spacing: -.01em;
       white-space: nowrap; overflow: hidden;
-      height: 100%;
+      height: 14px; /* fixed bar height */
+      min-height: 14px;
+      min-width: 0;
     }
     .plan-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     .plan-dates { font-size: 10px; opacity: .9; flex: 0 0 auto; white-space: nowrap; }
@@ -335,12 +340,12 @@
     .plan:hover .resize-handle, .plan.resizing .resize-handle { opacity: 1; }
     .resize-handle:hover { background: rgba(255,255,255,.24); }
 
-    .density-extra { position: absolute; left: 0; right: 0; top: 16px; overflow: visible; font-size: 11px; color: var(--text-soft); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 1px 0; }
+    .density-extra { font-size: 11px; color: var(--text-soft); display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow: visible; padding: 2px 0; min-width: 0; width: 100%; box-sizing: border-box; }
     .density-extra.standard, .density-extra.comprehensive {
-      display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+      display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow: visible;
     }
-    .density-extra.comprehensive { flex-direction: column; align-items: flex-start; gap: 3px; }
-    .meta-pill { padding: 2px 6px; border-radius: 999px; background: rgba(79,70,229,.08); color: var(--text-soft); font-size: 10px; font-weight: 700; white-space: nowrap; overflow: visible; flex-shrink: 0; }
+    .density-extra.comprehensive { flex-direction: column; align-items: flex-start; gap: 3px; flex-wrap: wrap; }
+    .meta-pill { padding: 2px 6px; border-radius: 999px; background: rgba(79,70,229,.08); color: var(--text-soft); font-size: 10px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
     .plan-desc { max-width: 260px; line-height: 1.35; }
 
     .milestone {
@@ -819,7 +824,7 @@
           const dateText = formatShort(plan.start) + '\u2013' + formatShort(plan.end);
           const titleInside = barWidth >= 120;
           const dateInside = barWidth >= 200;
-          return '<div class="plan ' + selected + '" data-plan-id="' + plan.id + '" style="left:' + left + 'px;top:' + top + 'px;width:' + barWidth + 'px;height:' + rowH + 'px;">' +
+          return '<div class="plan ' + selected + '" data-plan-id="' + plan.id + '" style="left:' + left + 'px;top:' + top + 'px;width:' + barWidth + 'px;">' +
             '<div class="plan-bar" style="background:' + (typeColors[plan.type] || '#94A3B8') + ';width:100%;height:' + BAR_HEIGHT + 'px;top:0;">' +
               '<div class="resize-handle left"></div>' +
               (titleInside ? '<span class="plan-title">' + plan.title + '</span>' : '') +
@@ -1021,6 +1026,25 @@
       let nextEnd = originEnd;
 
       if (mode === 'move') {
+        // Cross-lane detection: find which lane track the pointer is over
+        const allTracks = document.querySelectorAll('.lane-track');
+        let overLaneId = null;
+        for (const t of allTracks) {
+          const r = t.getBoundingClientRect();
+          if (e.clientX >= r.left && e.clientX <= r.right) {
+            overLaneId = t.dataset.laneTrack;
+            break;
+          }
+        }
+        if (overLaneId && overLaneId !== plan.lane) {
+          plan.lane = overLaneId;
+          const newTrack = document.querySelector(`.lane-track[data-lane-track="${overLaneId}"]`);
+          if (newTrack) {
+            state.drag.trackRect = newTrack.getBoundingClientRect();
+            state.drag.ppd = newTrack.clientWidth / DAYS_IN_YEAR;
+          }
+        }
+
         nextStart = snapIndex(originStart + deltaDays, state.snapMode, 'start');
         nextEnd = nextStart + duration;
         if (nextEnd >= DAYS_IN_YEAR) {
