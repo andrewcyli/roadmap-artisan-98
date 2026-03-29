@@ -298,38 +298,51 @@
 
     .plan {
       position: absolute;
-      border-radius: 999px;
       box-shadow: 0 2px 8px rgba(30,27,75,.08);
       cursor: default;
       transition: box-shadow .12s ease;
       z-index: 10;
       user-select: none;
       overflow: visible;
-      /* Grid: bar on top, meta row below — meta can extend wider than bar */
-      display: grid;
-      grid-template-rows: auto auto;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
     }
     .plan:hover { box-shadow: 0 4px 16px rgba(30,27,75,.12); }
     .plan.drag-armed { box-shadow: 0 0 0 3px rgba(79,70,229,.18), 0 10px 24px rgba(30,27,75,.16); }
     .plan.dragging, .plan.resizing { z-index: 28; }
     .plan.selected { box-shadow: 0 0 0 3px rgba(79,70,229,.22), 0 4px 16px rgba(30,27,75,.14); }
 
+    /* Row 1: bar + title (flex row) */
+    .plan-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
     .plan-bar {
-      display: flex; align-items: center; gap: 8px;
+      flex: 0 0 auto;
+      display: flex; align-items: center;
       border-radius: 999px;
       padding: 0 10px;
       color: rgba(255,255,255,.95);
       font-size: 11px; font-weight: 700;
       letter-spacing: -.01em;
-      white-space: nowrap; overflow: hidden;
-      height: 14px; /* fixed bar height */
-      min-height: 14px;
-      min-width: 0;
+      white-space: nowrap; overflow: visible;
+      height: 14px; min-height: 14px;
+      min-width: 30px;
+      position: relative;
     }
-    .plan-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-    .plan-dates { font-size: 10px; opacity: .9; flex: 0 0 auto; white-space: nowrap; }
-
-    
+    .plan-title-out {
+      font-size: 11px; font-weight: 700;
+      white-space: nowrap; color: var(--text);
+      flex-shrink: 0;
+    }
+    .plan-title-in {
+      flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+      font-size: 11px; font-weight: 700; white-space: nowrap;
+      color: rgba(255,255,255,.95);
+    }
+    .plan-dates { font-size: 10px; opacity: .9; flex: 0 0 auto; white-space: nowrap; color: rgba(255,255,255,.85); margin-left: 4px; }
 
     .resize-handle {
       position: absolute; top: 1px; bottom: 1px; width: 8px; border-radius: 999px; opacity: 0;
@@ -340,13 +353,29 @@
     .plan:hover .resize-handle, .plan.resizing .resize-handle { opacity: 1; }
     .resize-handle:hover { background: rgba(255,255,255,.24); }
 
-    .density-extra { font-size: 11px; color: var(--text-soft); display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow: visible; padding: 2px 0; min-width: 0; width: 100%; box-sizing: border-box; }
-    .density-extra.standard, .density-extra.comprehensive {
-      display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow: visible;
+    /* Row 2: meta tags (single line, no wrap) */
+    .density-extra {
+      display: flex; align-items: center; gap: 4px;
+      flex-wrap: nowrap; overflow: visible;
+      padding: 3px 0 0;
+      font-size: 11px; color: var(--text-soft);
+      min-height: 16px;
     }
-    .density-extra.comprehensive { flex-direction: column; align-items: flex-start; gap: 3px; flex-wrap: wrap; }
-    .meta-pill { padding: 2px 6px; border-radius: 999px; background: rgba(79,70,229,.08); color: var(--text-soft); font-size: 10px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-    .plan-desc { max-width: 260px; line-height: 1.35; }
+    .meta-pill {
+      padding: 2px 6px; border-radius: 999px;
+      background: rgba(79,70,229,.08); color: var(--text-soft);
+      font-size: 10px; font-weight: 700;
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* Row 3: description (comprehensive only) */
+    .plan-desc {
+      font-size: 11px; color: var(--text-soft);
+      line-height: 1.35; padding: 3px 0 0;
+      display: -webkit-box; -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical; overflow: hidden;
+      max-height: 52px;
+    }
 
     .milestone {
       position: absolute; width: 0; top: 0; bottom: 0; border-left: 1px dashed rgba(79,70,229,.26);
@@ -578,11 +607,11 @@
     const MIN_INLINE_WIDTH = 120;
     const LONG_PRESS_MS = 400;
     const BAR_HEIGHT = 14;
-    // Layout: bar (14px) + gap(2px) + meta row (12px) = 28px total. 1:5 ratio at ~140px width.
+    // condensed: bar+title only (14px) | standard: bar+title+meta (34px) | comprehensive: bar+title+meta+desc (76px)
     const DENSITY_META = {
       condensed: { rowHeight: 14, lanePad: 8 },
       standard: { rowHeight: 34, lanePad: 8 },
-      comprehensive: { rowHeight: 42, lanePad: 12 }
+      comprehensive: { rowHeight: 76, lanePad: 12 }
     };
 
     const laneMeta = [
@@ -643,6 +672,11 @@
       { id: 'p13', title: 'Holiday Offer Engine', lane: 'promo', type: 'promo', status: 'Active', owner: 'Leo', start: '2026-11-02', end: '2026-12-21', description: 'Full-funnel offer orchestration across site, paid media, and CRM.', groupId: 'g4' },
       { id: 'p14', title: 'Evergreen Gift Finder', lane: 'always-on', type: 'always-on', status: 'Planned', owner: 'Jules', start: '2026-11-09', end: '2026-12-28', description: 'Persistent merchandising and intent capture layer for peak season.', groupId: 'g4' },
       { id: 'p15', title: 'Year-End Brand Film', lane: 'brand', type: 'brand', status: 'Approved', owner: 'Maya', start: '2026-12-01', end: '2026-12-28', description: 'Capstone brand expression tying together the year and setting up next year.', groupId: 'g4' },
+      { id: 'p16', title: 'Multi-Channel Executive Thought Leadership Social Media Blitz Campaign', lane: 'brand', type: 'brand', status: 'Planned', owner: 'Maya', start: '2026-04-06', end: '2026-04-27', description: 'Long-title test: enterprise thought leadership campaign with paid social, organic content, and executive amplification across LinkedIn, Twitter, and YouTube.', groupId: 'g2' },
+      { id: 'p17', title: 'Flash Sale', lane: 'promo', type: 'promo', status: 'Planned', owner: 'Leo', start: '2026-08-10', end: '2026-08-17', description: 'Short bar test: 1-week flash sale targeting dormant CRM cohorts with tiered discount ladder.' },
+      { id: 'p18', title: 'Q4 Content Calendar Planning Sprint with Cross-Functional Stakeholder Alignment Workshop Series', lane: 'content', type: 'content', status: 'Review', owner: 'Priya', start: '2026-10-01', end: '2026-10-26', description: 'Three-week intensive content planning sprint that brings together product, brand, and growth teams to lock the Q4 editorial calendar. Delivers a content matrix, creative briefs, and production timeline with clear ownership and KPIs for each piece.' },
+      { id: 'p19', title: 'Back-to-School Push Phase 2', lane: 'promo', type: 'promo', status: 'Active', owner: 'Jules', start: '2026-08-24', end: '2026-09-14', description: 'Overlaps with p10 — stacking test. Follow-on promotion window targeting different segments.', groupId: 'g3' },
+      { id: 'p20', title: 'Loyalty Push', lane: 'always-on', type: 'always-on', status: 'Active', owner: 'Leo', start: '2026-07-06', end: '2026-08-15', description: 'Overlaps with p9 — stacking test in always-on lane.' },
     ];
 
     const milestones = [
@@ -815,23 +849,48 @@
           const selected = state.selectedPlanId === plan.id ? 'selected' : '';
           const statusColor = statusColors[plan.status] || '#94A3B8';
           const sc = 'style="color:' + statusColor + '"';
-          const statusBadge = state.density !== 'condensed'
-            ? '<span class="meta-pill" ' + sc + '>' + plan.status + '</span>'
-            : '';
-          const metaRow = state.density !== 'condensed'
-            ? '<div class="density-extra ' + state.density + '"><span class="meta-pill">' + lane.name + '</span>' + statusBadge + '<span class="meta-pill">' + plan.owner + '</span></div>'
-            : '';
           const dateText = formatShort(plan.start) + '\u2013' + formatShort(plan.end);
+          const showDates = barWidth >= 180;
+          const density = state.density;
+
+          // Title: inside bar if fits, outside if too long
           const titleInside = barWidth >= 120;
-          const dateInside = barWidth >= 200;
-          return '<div class="plan ' + selected + '" data-plan-id="' + plan.id + '" style="left:' + left + 'px;top:' + top + 'px;width:' + barWidth + 'px;">' +
-            '<div class="plan-bar" style="background:' + (typeColors[plan.type] || '#94A3B8') + ';width:100%;height:' + BAR_HEIGHT + 'px;top:0;">' +
-              '<div class="resize-handle left"></div>' +
-              (titleInside ? '<span class="plan-title">' + plan.title + '</span>' : '') +
-              (dateInside ? '<span class="plan-dates">' + dateText + '</span>' : '') +
-              '<div class="resize-handle right"></div>' +
+          const titleInBar = titleInside
+            ? '<span class="plan-title-in">' + plan.title + '</span>'
+            : '';
+          const titleOutside = !titleInside
+            ? '<span class="plan-title-out">' + plan.title + '</span>'
+            : '';
+          const dateInBar = showDates
+            ? '<span class="plan-dates">' + dateText + '</span>'
+            : '';
+
+          // Meta tags: single row, no wrapping
+          const metaRow = density !== 'condensed'
+            ? '<div class="density-extra"><span class="meta-pill">' + lane.name + '</span><span class="meta-pill" ' + sc + '>' + plan.status + '</span><span class="meta-pill">' + plan.owner + '</span></div>'
+            : '';
+
+          // Description: comprehensive only, max 3 rows
+          const descRow = density === 'comprehensive' && plan.description
+            ? '<div class="plan-desc">' + plan.description + '</div>'
+            : '';
+
+          // Plan width: max of bar width and title outside (if any)
+          // Title outside adds ~120px average
+          const planW = titleInside ? barWidth : Math.max(barWidth, barWidth + 120);
+
+          return '<div class="plan ' + selected + '" data-plan-id="' + plan.id + '" style="left:' + left + 'px;top:' + top + 'px;width:' + planW + 'px;">' +
+            '<div class="plan-bar-row">' +
+              '<div class="plan-bar" style="background:' + (typeColors[plan.type] || '#94A3B8') + ';width:' + barWidth + 'px;height:14px;">' +
+                '<div class="resize-handle left"></div>' +
+                titleInBar +
+                dateInBar +
+                '<div class="resize-handle right"></div>' +
+              '</div>' +
+              titleOutside +
             '</div>' +
             metaRow +
+            descRow +
           '</div>';
         }).join('');
 
