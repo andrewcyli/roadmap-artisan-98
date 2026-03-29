@@ -332,7 +332,7 @@
       min-width: 30px;
       position: relative;
     }
-    .plan-title-out {
+    .plan-title-out { position: absolute; left: calc(100% + 6px); top: 0;
       font-size: 11px; font-weight: 700;
       white-space: nowrap; color: var(--text);
       flex-shrink: 0;
@@ -875,11 +875,7 @@
             ? '<div class="plan-desc">' + plan.description + '</div>'
             : '';
 
-          // Plan width: max of bar width and title outside (if any)
-          // Title outside adds ~120px average
-          const planW = titleInside ? barWidth : Math.max(barWidth, barWidth + 120);
-
-          return '<div class="plan ' + selected + '" data-plan-id="' + plan.id + '" style="left:' + left + 'px;top:' + top + 'px;width:' + planW + 'px;">' +
+          return '<div class="plan ' + selected + '" data-plan-id="' + plan.id + '" style="left:' + left + 'px;top:' + top + 'px;width:' + barWidth + 'px;">' +
             '<div class="plan-bar-row">' +
               '<div class="plan-bar" style="background:' + (typeColors[plan.type] || '#94A3B8') + ';width:' + barWidth + 'px;height:14px;">' +
                 '<div class="resize-handle left"></div>' +
