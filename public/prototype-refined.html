@@ -265,7 +265,7 @@
     .lane-title { font-size: 13px; font-weight: 700; }
     .lane-sub { font-size: 11px; color: var(--muted); }
     .lane-track {
-      position: relative; min-height: 88px;
+      position: relative; min-height: 0;
       background:
         repeating-linear-gradient(to right,
           transparent 0,
@@ -580,9 +580,9 @@
     const BAR_HEIGHT = 14;
     // Layout: bar (14px) + gap(2px) + meta row (12px) = 28px total. 1:5 ratio at ~140px width.
     const DENSITY_META = {
-      condensed:   { rowHeight: 20, lanePad: 8 },   // 20px — bar only (no meta)
-      standard:    { rowHeight: 28, lanePad: 8 },   // 28px total — bar(14) + gap(2) + meta(12)
-      comprehensive: { rowHeight: 36, lanePad: 12 }  // 36px — bar(14) + gap(2) + meta(20, richer pills)
+      condensed: { rowHeight: 14, lanePad: 8 },
+      standard: { rowHeight: 34, lanePad: 8 },
+      comprehensive: { rowHeight: 42, lanePad: 12 }
     };
 
     const laneMeta = [
@@ -819,7 +819,7 @@
             ? '<span class="meta-pill" ' + sc + '>' + plan.status + '</span>'
             : '';
           const metaRow = state.density !== 'condensed'
-            ? '<div class="density-extra"><span class="meta-pill">' + lane.name + '</span>' + statusBadge + '<span class="meta-pill">' + plan.owner + '</span></div>'
+            ? '<div class="density-extra ' + state.density + '"><span class="meta-pill">' + lane.name + '</span>' + statusBadge + '<span class="meta-pill">' + plan.owner + '</span></div>'
             : '';
           const dateText = formatShort(plan.start) + '\u2013' + formatShort(plan.end);
           const titleInside = barWidth >= 120;
@@ -988,18 +988,30 @@
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
+    function getLaneTrackAtPoint(clientX, clientY) {
+      return Array.from(document.querySelectorAll('.lane-track')).find(track => {
+        const rect = track.getBoundingClientRect();
+        return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+      }) || null;
+    }
+
+    function getTrackMetrics(track) {
+      const rect = track.getBoundingClientRect();
+      return { trackRect: rect, ppd: track.clientWidth / DAYS_IN_YEAR };
+    }
+
     function startDrag(planId, mode, edge, pointerEvent) {
       const plan = plans.find(p => p.id === planId);
       const node = document.querySelector(`.plan[data-plan-id="${planId}"]`);
       const track = node.closest('.lane-track');
-      const trackRect = track.getBoundingClientRect();
+      const { trackRect, ppd } = getTrackMetrics(track);
       const originStart = dayIndex(plan.start);
       const originEnd = dayIndex(plan.end);
       const pointerX = pointerEvent.clientX;
-      const ppd = track.clientWidth / DAYS_IN_YEAR;
       state.drag = {
         planId, mode, edge, pointerX, originStart, originEnd, trackRect, ppd,
         duration: originEnd - originStart,
+        laneId: plan.lane,
       };
       node.classList.add(mode === 'move' ? 'dragging' : 'resizing');
       showIndicator(originStart, edge || 'start', trackRect, ppd);
@@ -1019,32 +1031,26 @@
 
     function onDragMove(e) {
       if (!state.drag) return;
-      const { planId, mode, edge, pointerX, originStart, originEnd, duration, ppd, trackRect } = state.drag;
+      const { planId, mode, edge, pointerX, originStart, originEnd, duration } = state.drag;
       const plan = plans.find(p => p.id === planId);
+
+      if (mode === 'move') {
+        const overTrack = getLaneTrackAtPoint(e.clientX, e.clientY);
+        if (overTrack && overTrack.dataset.laneTrack !== plan.lane) {
+          plan.lane = overTrack.dataset.laneTrack;
+          state.drag.laneId = plan.lane;
+          const metrics = getTrackMetrics(overTrack);
+          state.drag.trackRect = metrics.trackRect;
+          state.drag.ppd = metrics.ppd;
+        }
+      }
+
+      const { ppd, trackRect } = state.drag;
       const deltaDays = Math.round((e.clientX - pointerX) / ppd);
       let nextStart = originStart;
       let nextEnd = originEnd;
 
       if (mode === 'move') {
-        // Cross-lane detection: find which lane track the pointer is over
-        const allTracks = document.querySelectorAll('.lane-track');
-        let overLaneId = null;
-        for (const t of allTracks) {
-          const r = t.getBoundingClientRect();
-          if (e.clientX >= r.left && e.clientX <= r.right) {
-            overLaneId = t.dataset.laneTrack;
-            break;
-          }
-        }
-        if (overLaneId && overLaneId !== plan.lane) {
-          plan.lane = overLaneId;
-          const newTrack = document.querySelector(`.lane-track[data-lane-track="${overLaneId}"]`);
-          if (newTrack) {
-            state.drag.trackRect = newTrack.getBoundingClientRect();
-            state.drag.ppd = newTrack.clientWidth / DAYS_IN_YEAR;
-          }
-        }
-
         nextStart = snapIndex(originStart + deltaDays, state.snapMode, 'start');
         nextEnd = nextStart + duration;
         if (nextEnd >= DAYS_IN_YEAR) {
@@ -1065,6 +1071,12 @@
       plan.start = dateFromIndex(clampIndex(nextStart));
       plan.end = dateFromIndex(clampIndex(nextEnd));
       renderTimeline();
+      const activeTrack = document.querySelector(`.lane-track[data-lane-track="${plan.lane}"]`);
+      if (activeTrack) {
+        const metrics = getTrackMetrics(activeTrack);
+        state.drag.trackRect = metrics.trackRect;
+        state.drag.ppd = metrics.ppd;
+      }
       const node = document.querySelector(`.plan[data-plan-id="${planId}"]`);
       if (node) node.classList.add(mode === 'move' ? 'dragging' : 'resizing');
     }
