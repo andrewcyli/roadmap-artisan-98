@@ -641,12 +641,7 @@
       Approved: '#7C3AED',
     };
 
-    const campaignGroups = [
-      { id: 'g1', name: 'Spring Momentum', color: '#4F46E5', start: '2026-01-12', end: '2026-03-22', lanes: ['brand','content','promo'] },
-      { id: 'g2', name: 'Launch Wave', color: '#0EA5E9', start: '2026-04-06', end: '2026-06-08', lanes: ['product-launch','brand','content'] },
-      { id: 'g3', name: 'Golden Quarter', color: '#F59E0B', start: '2026-08-03', end: '2026-10-25', lanes: ['seasonal','promo','content'] },
-      { id: 'g4', name: 'Year-End Surge', color: '#10B981', start: '2026-11-02', end: '2026-12-27', lanes: ['promo','always-on','brand'] },
-    ];
+    const campaignGroups = [];
 
     let ideas = [
       { id: 'i1', title: 'Creator sprint around product trial stories', lane: 'content', owner: 'Priya', type: 'content', note: 'Turn 3 customer success stories into short-form series and landing-page snippets.' },
@@ -657,37 +652,29 @@
     ];
 
     let plans = [
-      { id: 'p1', title: 'New Year Brand Reset', lane: 'brand', type: 'brand', status: 'Approved', owner: 'Maya', start: '2026-01-05', end: '2026-02-02', description: 'Refreshed visual system and manifesto campaign to reset the year with a sharper premium voice.', groupId: 'g1' },
-      { id: 'p2', title: 'Q1 Editorial Pulse', lane: 'content', type: 'content', status: 'Active', owner: 'Priya', start: '2026-01-12', end: '2026-03-09', description: 'Weekly hero story cadence spanning blog, social, and lifecycle amplification.', groupId: 'g1' },
-      { id: 'p3', title: 'Spring Conversion Burst', lane: 'promo', type: 'promo', status: 'Planned', owner: 'Leo', start: '2026-02-09', end: '2026-03-16', description: 'Short tactical promotion windows stacked across paid social and CRM.', groupId: 'g1' },
-      { id: 'p4', title: 'Launch Teaser Runway', lane: 'product-launch', type: 'product-launch', status: 'Review', owner: 'Jules', start: '2026-03-23', end: '2026-04-27', description: 'Early teaser wave to seed awareness before launch month.', groupId: 'g2' },
-      { id: 'p5', title: 'Launch Press Kit', lane: 'brand', type: 'brand', status: 'Planned', owner: 'Maya', start: '2026-04-06', end: '2026-05-04', description: 'Narrative packaging, PR assets, and executive briefing deck.', groupId: 'g2' },
-      { id: 'p6', title: 'Product Release Week', lane: 'product-launch', type: 'product-launch', status: 'Approved', owner: 'Jules', start: '2026-05-04', end: '2026-05-25', description: 'Core go-live announcement window with field enablement and sales handoff.', groupId: 'g2' },
-      { id: 'p7', title: 'How-It-Works Series', lane: 'content', type: 'content', status: 'Active', owner: 'Priya', start: '2026-05-11', end: '2026-06-22', description: 'Explainer content stream to sustain post-launch education.', groupId: 'g2' },
+      { id: 'p1', title: 'New Year Brand Reset', lane: 'brand', type: 'brand', status: 'Approved', owner: 'Maya', start: '2026-01-05', end: '2026-02-02', description: 'Refreshed visual system and manifesto campaign to reset the year with a sharper premium voice.' },
+      { id: 'p2', title: 'Q1 Editorial Pulse', lane: 'content', type: 'content', status: 'Active', owner: 'Priya', start: '2026-01-12', end: '2026-03-09', description: 'Weekly hero story cadence spanning blog, social, and lifecycle amplification.' },
+      { id: 'p3', title: 'Spring Conversion Burst', lane: 'promo', type: 'promo', status: 'Planned', owner: 'Leo', start: '2026-02-09', end: '2026-03-16', description: 'Short tactical promotion windows stacked across paid social and CRM.' },
+      { id: 'p4', title: 'Launch Teaser Runway', lane: 'product-launch', type: 'product-launch', status: 'Review', owner: 'Jules', start: '2026-03-23', end: '2026-04-27', description: 'Early teaser wave to seed awareness before launch month.' },
+      { id: 'p5', title: 'Launch Press Kit', lane: 'brand', type: 'brand', status: 'Planned', owner: 'Maya', start: '2026-04-06', end: '2026-05-04', description: 'Narrative packaging, PR assets, and executive briefing deck.' },
+      { id: 'p6', title: 'Product Release Week', lane: 'product-launch', type: 'product-launch', status: 'Approved', owner: 'Jules', start: '2026-05-04', end: '2026-05-25', description: 'Core go-live announcement window with field enablement and sales handoff.' },
+      { id: 'p7', title: 'How-It-Works Series', lane: 'content', type: 'content', status: 'Active', owner: 'Priya', start: '2026-05-11', end: '2026-06-22', description: 'Explainer content stream to sustain post-launch education.' },
       { id: 'p8', title: 'Summer Seasonal Hero', lane: 'seasonal', type: 'seasonal', status: 'Review', owner: 'Maya', start: '2026-06-29', end: '2026-07-27', description: 'Summer tentpole campaign with landing page, paid support, and retail tie-in.' },
       { id: 'p9', title: 'Midyear Retention Loop', lane: 'always-on', type: 'always-on', status: 'Active', owner: 'Leo', start: '2026-07-06', end: '2026-08-31', description: 'Lifecycle refresh with nurture segments and win-back pathways.' },
-      { id: 'p10', title: 'Back-to-School Push', lane: 'promo', type: 'promo', status: 'Approved', owner: 'Leo', start: '2026-08-10', end: '2026-09-07', description: 'Offer-led campaign tuned for acquisition and reactivation.', groupId: 'g3' },
-      { id: 'p11', title: 'Creator Collab Capsule', lane: 'brand', type: 'brand', status: 'Planned', owner: 'Maya', start: '2026-08-24', end: '2026-09-21', description: 'Co-branded creative drop with creator amplification.', groupId: 'g3' },
-      { id: 'p12', title: 'Autumn Story Arc', lane: 'content', type: 'content', status: 'Review', owner: 'Priya', start: '2026-09-14', end: '2026-10-26', description: 'Longer editorial sequence bridging seasonal storytelling and product proof.', groupId: 'g3' },
-      { id: 'p13', title: 'Holiday Offer Engine', lane: 'promo', type: 'promo', status: 'Active', owner: 'Leo', start: '2026-11-02', end: '2026-12-21', description: 'Full-funnel offer orchestration across site, paid media, and CRM.', groupId: 'g4' },
-      { id: 'p14', title: 'Evergreen Gift Finder', lane: 'always-on', type: 'always-on', status: 'Planned', owner: 'Jules', start: '2026-11-09', end: '2026-12-28', description: 'Persistent merchandising and intent capture layer for peak season.', groupId: 'g4' },
-      { id: 'p15', title: 'Year-End Brand Film', lane: 'brand', type: 'brand', status: 'Approved', owner: 'Maya', start: '2026-12-01', end: '2026-12-28', description: 'Capstone brand expression tying together the year and setting up next year.', groupId: 'g4' },
-      { id: 'p16', title: 'Multi-Channel Executive Thought Leadership Social Media Blitz Campaign', lane: 'brand', type: 'brand', status: 'Planned', owner: 'Maya', start: '2026-04-06', end: '2026-04-27', description: 'Long-title test: enterprise thought leadership campaign with paid social, organic content, and executive amplification across LinkedIn, Twitter, and YouTube.', groupId: 'g2' },
+      { id: 'p10', title: 'Back-to-School Push', lane: 'promo', type: 'promo', status: 'Approved', owner: 'Leo', start: '2026-08-10', end: '2026-09-07', description: 'Offer-led campaign tuned for acquisition and reactivation.' },
+      { id: 'p11', title: 'Creator Collab Capsule', lane: 'brand', type: 'brand', status: 'Planned', owner: 'Maya', start: '2026-08-24', end: '2026-09-21', description: 'Co-branded creative drop with creator amplification.' },
+      { id: 'p12', title: 'Autumn Story Arc', lane: 'content', type: 'content', status: 'Review', owner: 'Priya', start: '2026-09-14', end: '2026-10-26', description: 'Longer editorial sequence bridging seasonal storytelling and product proof.' },
+      { id: 'p13', title: 'Holiday Offer Engine', lane: 'promo', type: 'promo', status: 'Active', owner: 'Leo', start: '2026-11-02', end: '2026-12-21', description: 'Full-funnel offer orchestration across site, paid media, and CRM.' },
+      { id: 'p14', title: 'Evergreen Gift Finder', lane: 'always-on', type: 'always-on', status: 'Planned', owner: 'Jules', start: '2026-11-09', end: '2026-12-28', description: 'Persistent merchandising and intent capture layer for peak season.' },
+      { id: 'p15', title: 'Year-End Brand Film', lane: 'brand', type: 'brand', status: 'Approved', owner: 'Maya', start: '2026-12-01', end: '2026-12-28', description: 'Capstone brand expression tying together the year and setting up next year.' },
+      { id: 'p16', title: 'Multi-Channel Executive Thought Leadership Social Media Blitz Campaign', lane: 'brand', type: 'brand', status: 'Planned', owner: 'Maya', start: '2026-04-06', end: '2026-04-27', description: 'Long-title test: enterprise thought leadership campaign with paid social, organic content, and executive amplification across LinkedIn, Twitter, and YouTube.' },
       { id: 'p17', title: 'Flash Sale', lane: 'promo', type: 'promo', status: 'Planned', owner: 'Leo', start: '2026-08-10', end: '2026-08-17', description: 'Short bar test: 1-week flash sale targeting dormant CRM cohorts with tiered discount ladder.' },
       { id: 'p18', title: 'Q4 Content Calendar Planning Sprint with Cross-Functional Stakeholder Alignment Workshop Series', lane: 'content', type: 'content', status: 'Review', owner: 'Priya', start: '2026-10-01', end: '2026-10-26', description: 'Three-week intensive content planning sprint that brings together product, brand, and growth teams to lock the Q4 editorial calendar. Delivers a content matrix, creative briefs, and production timeline with clear ownership and KPIs for each piece.' },
-      { id: 'p19', title: 'Back-to-School Push Phase 2', lane: 'promo', type: 'promo', status: 'Active', owner: 'Jules', start: '2026-08-24', end: '2026-09-14', description: 'Overlaps with p10 — stacking test. Follow-on promotion window targeting different segments.', groupId: 'g3' },
+      { id: 'p19', title: 'Back-to-School Push Phase 2', lane: 'promo', type: 'promo', status: 'Active', owner: 'Jules', start: '2026-08-24', end: '2026-09-14', description: 'Overlaps with p10 — stacking test. Follow-on promotion window targeting different segments.' },
       { id: 'p20', title: 'Loyalty Push', lane: 'always-on', type: 'always-on', status: 'Active', owner: 'Leo', start: '2026-07-06', end: '2026-08-15', description: 'Overlaps with p9 — stacking test in always-on lane.' },
     ];
 
-    const milestones = [
-      { id: 'm1', name: 'FY Kickoff', date: '2026-01-05' },
-      { id: 'm2', name: 'Spring Launch Review', date: '2026-03-30' },
-      { id: 'm3', name: 'Major Release', date: '2026-05-11' },
-      { id: 'm4', name: 'Q3 Planning Lock', date: '2026-08-03' },
-      { id: 'm5', name: 'Holiday GTM Go', date: '2026-11-09' },
-      { id: 'm6', name: 'FY Wrap', date: '2026-12-22' },
-    ];
-
+    const milestones = [];
     const state = {
       density: 'standard',
       snapMode: 'week',
@@ -904,9 +891,7 @@
       }).join('');
 
       el.lanes.innerHTML = laneHtml;
-      renderGroups();
-      renderMilestones();
-      renderPanel();
+                  renderPanel();
       syncControls();
     }
 
