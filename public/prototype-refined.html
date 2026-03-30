@@ -335,7 +335,8 @@
     .plan-title-out { position: absolute; left: calc(100% + 6px); top: 0;
       font-size: 11px; font-weight: 700;
       white-space: nowrap; color: var(--text);
-      flex-shrink: 0;
+      flex-shrink: 0; overflow: hidden; text-overflow: ellipsis;
+      pointer-events: none;
     }
     .plan-title-in {
       flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
@@ -609,7 +610,7 @@
     const BAR_HEIGHT = 14;
     // condensed: bar+title only (14px) | standard: bar+title+meta+gap (34+10=44px) | comprehensive: bar+title+meta+desc+gap (76+10=86px)
     const DENSITY_META = {
-      condensed: { rowHeight: 20, lanePad: 8 },
+      condensed: { rowHeight: 26, lanePad: 8 },
       standard: { rowHeight: 44, lanePad: 8 },
       comprehensive: { rowHeight: 86, lanePad: 12 }
     };
@@ -840,13 +841,27 @@
           const showDates = barWidth >= 180;
           const density = state.density;
 
+          // Find nearest next plan on same row (for title collision avoidance)
+          let availableForTitle = 180; // default max
+          const sameRowPlans = lanePlans.filter(p => {
+            const r = stack.map.get(p.id) || 0;
+            return r === row && p.id !== plan.id;
+          });
+          const planEnd = left + barWidth;
+          for (const sp of sameRowPlans) {
+            const spLeft = (dayIndex(sp.start) / DAYS_IN_YEAR) * trackWidth;
+            if (spLeft > planEnd) {
+              availableForTitle = Math.min(availableForTitle, spLeft - planEnd - 8);
+            }
+          }
+
           // Title: inside bar if fits, outside if too long
           const titleInside = barWidth >= 160;
           const titleInBar = titleInside
             ? '<span class="plan-title-in">' + plan.title + '</span>'
             : '';
           const titleOutside = !titleInside
-            ? '<span class="plan-title-out">' + plan.title + '</span>'
+            ? '<span class="plan-title-out" style="max-width:' + Math.max(0, availableForTitle) + 'px">' + plan.title + '</span>'
             : '';
           const dateInBar = showDates
             ? '<span class="plan-dates">' + dateText + '</span>'
