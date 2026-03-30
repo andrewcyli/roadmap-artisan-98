@@ -607,11 +607,11 @@
     const MIN_INLINE_WIDTH = 120;
     const LONG_PRESS_MS = 400;
     const BAR_HEIGHT = 14;
-    // condensed: bar+title only (14px) | standard: bar+title+meta (34px) | comprehensive: bar+title+meta+desc (76px)
+    // condensed: bar+title only (14px) | standard: bar+title+meta+gap (34+10=44px) | comprehensive: bar+title+meta+desc+gap (76+10=86px)
     const DENSITY_META = {
-      condensed: { rowHeight: 14, lanePad: 8 },
-      standard: { rowHeight: 34, lanePad: 8 },
-      comprehensive: { rowHeight: 76, lanePad: 12 }
+      condensed: { rowHeight: 20, lanePad: 8 },
+      standard: { rowHeight: 44, lanePad: 8 },
+      comprehensive: { rowHeight: 86, lanePad: 12 }
     };
 
     const laneMeta = [
@@ -765,8 +765,8 @@
         const start = dayIndex(plan.start);
         const end = dayIndex(plan.end);
         let rowIndex = 0;
-        while (rows[rowIndex] !== undefined && start <= rows[rowIndex]) rowIndex += 1;
-        rows[rowIndex] = end + 2;
+        while (rows[rowIndex] !== undefined && start < rows[rowIndex]) rowIndex += 1;
+        rows[rowIndex] = end + 1;
         map.set(plan.id, rowIndex);
       });
       return { map, height: Math.max(88, density.lanePad * 2 + Math.max(1, rows.length) * density.rowHeight) };
