@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import { MinimalistTimeline, DenseTimeline, VisualTimeline } from "./prototypes";
+import CalligraphyPlayground from "./calligraphy/Playground";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,19 @@ const PrototypeSelector = () => (
         </Link>
       </div>
       
+      <Link to="/magic-clock" className="group mt-6 block">
+        <div className="bg-gradient-to-r from-amber-500/10 to-rose-500/10 hover:from-amber-500/20 hover:to-rose-500/20 border border-amber-300/20 hover:border-amber-300/40 rounded-2xl p-6 transition-all duration-300 flex items-center gap-5">
+          <div className="w-12 h-12 bg-stone-900 rounded-xl flex items-center justify-center text-2xl shrink-0">
+            🖌️
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white mb-1">Magic Clock · Live Brush Calligraphy</h2>
+            <p className="text-slate-400 text-sm">Traditional Chinese time written live, stroke by stroke, from real stroke-order data with brush &amp; ink effects.</p>
+          </div>
+          <span className="ml-auto text-amber-300/70 group-hover:text-amber-200 text-sm">Open →</span>
+        </div>
+      </Link>
+
       <div className="text-center mt-12">
         <Link to="/" className="text-slate-500 hover:text-white transition-colors">
           ← Back to original app
@@ -89,6 +103,7 @@ const App = () => (
           <Route path="/prototype/minimalist" element={<MinimalistTimeline />} />
           <Route path="/prototype/dense" element={<DenseTimeline />} />
           <Route path="/prototype/visual" element={<VisualTimeline />} />
+          <Route path="/magic-clock" element={<CalligraphyPlayground />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

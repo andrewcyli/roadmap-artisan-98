@@ -1,0 +1,135 @@
+// Calligraphic style presets. A "style" is just a named bag of BrushParams that
+// deforms/inks the structural strokes toward a chosen feel. These are parametric
+// stylisations (not literal font files): the skeleton stays faithful to the
+// stroke-order data while width/taper/ink behaviour shifts the character.
+
+import type { BrushParams, StylePreset } from "./types";
+
+export const DEFAULT_PARAMS: BrushParams = {
+  brushSize: 1,
+  taper: 0.55,
+  pressure: 0.5,
+  endFlare: 0.4,
+  fontFit: 0.7,
+  dryBrush: 0.35,
+  brokenBrush: 0.12,
+  toneVariance: 0.4,
+  speedThinning: 0.4,
+  feather: 0.45,
+  bristles: 7,
+  paper: 0.5,
+  inkDarkness: 0.92,
+  speed: 520,
+};
+
+export const STYLE_PRESETS: StylePreset[] = [
+  {
+    id: "kaishu",
+    label: "楷書 Kaishu",
+    hint: "Upright regular script: even pressure, clean tapers, controlled ink.",
+    params: {
+      ...DEFAULT_PARAMS,
+      taper: 0.5,
+      pressure: 0.45,
+      endFlare: 0.45,
+      fontFit: 0.85,
+      dryBrush: 0.18,
+      brokenBrush: 0.05,
+      toneVariance: 0.28,
+      speedThinning: 0.25,
+      feather: 0.4,
+      bristles: 6,
+      inkDarkness: 0.95,
+      speed: 480,
+    },
+  },
+  {
+    id: "xingshu",
+    label: "行書 Xingshu",
+    hint: "Running script: livelier pressure, more flare, looser ink.",
+    params: {
+      ...DEFAULT_PARAMS,
+      brushSize: 1.05,
+      taper: 0.62,
+      pressure: 0.65,
+      endFlare: 0.6,
+      fontFit: 0.6,
+      dryBrush: 0.45,
+      brokenBrush: 0.16,
+      toneVariance: 0.5,
+      speedThinning: 0.55,
+      feather: 0.55,
+      bristles: 8,
+      inkDarkness: 0.9,
+      speed: 620,
+    },
+  },
+  {
+    id: "lishu",
+    label: "隸書 Lishu",
+    hint: "Clerical script: broad flat brush, strong horizontal flare, dry edges.",
+    params: {
+      ...DEFAULT_PARAMS,
+      brushSize: 1.25,
+      taper: 0.35,
+      pressure: 0.35,
+      endFlare: 0.85,
+      fontFit: 0.55,
+      dryBrush: 0.5,
+      brokenBrush: 0.2,
+      toneVariance: 0.45,
+      speedThinning: 0.3,
+      feather: 0.5,
+      bristles: 10,
+      inkDarkness: 0.88,
+      speed: 440,
+    },
+  },
+  {
+    id: "kuangcao",
+    label: "狂草 Wild Cursive",
+    hint: "Fast wild ink: thin speed marks, heavy dry/broken brush, low fit.",
+    params: {
+      ...DEFAULT_PARAMS,
+      brushSize: 0.95,
+      taper: 0.8,
+      pressure: 0.8,
+      endFlare: 0.7,
+      fontFit: 0.4,
+      dryBrush: 0.7,
+      brokenBrush: 0.32,
+      toneVariance: 0.7,
+      speedThinning: 0.85,
+      feather: 0.65,
+      bristles: 9,
+      inkDarkness: 0.85,
+      speed: 900,
+    },
+  },
+  {
+    id: "hei",
+    label: "黑體 Bold Sans",
+    hint: "Modern even weight: blunt ends, solid fill, minimal texture.",
+    params: {
+      ...DEFAULT_PARAMS,
+      brushSize: 1.3,
+      taper: 0.12,
+      pressure: 0.1,
+      endFlare: 0.05,
+      fontFit: 0.95,
+      dryBrush: 0.05,
+      brokenBrush: 0.0,
+      toneVariance: 0.1,
+      speedThinning: 0.1,
+      feather: 0.2,
+      bristles: 4,
+      paper: 0.25,
+      inkDarkness: 0.97,
+      speed: 700,
+    },
+  },
+];
+
+export function presetById(id: string): StylePreset {
+  return STYLE_PRESETS.find((p) => p.id === id) ?? STYLE_PRESETS[0];
+}
